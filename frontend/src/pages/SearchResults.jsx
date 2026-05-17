@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Search, RefreshCw } from 'lucide-react';
 import ProductCard from '../components/product/ProductCard';
@@ -61,12 +61,16 @@ function SourceSection({ source, products, isLoading }) {
 
 export default function SearchResults() {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const query = searchParams.get('q') || '';
   const { search, isSearching, isLiveScanning, scanMessage, statusMessage, products, isConnected } = useSearchStore();
 
   useEffect(() => {
-    if (query && isConnected) search(query);
-  }, [query, isConnected, search]);
+    if (query && isConnected) {
+      const isCategory = location.state?.isCategory || false;
+      search(query, isCategory);
+    }
+  }, [query, isConnected, search, location.state?.isCategory]);
 
   const hasAnyResults = (products.blinkit || []).length > 0;
 

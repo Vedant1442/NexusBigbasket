@@ -122,7 +122,7 @@ wss.on("connection", (socket) => {
         // Get one real product image per category directly from the DB
         const catImageRows = db.prepare(
           `SELECT category, image FROM products
-           WHERE category IS NOT NULL AND image IS NOT NULL
+           WHERE category IS NOT NULL AND image IS NOT NULL AND image != 'No Image Found' AND image != ''
            GROUP BY category`
         ).all();
 
@@ -154,15 +154,64 @@ wss.on("connection", (socket) => {
       }
 
       if (data.action === "search") {
-        const { searchTerm, lat, lon } = data;
-        console.log(`[${cid}] SQLite Search: "${searchTerm}"`);
+        const { searchTerm, lat, lon, isCategory } = data;
+        console.log(`[${cid}] SQLite Search: "${searchTerm}" (isCategory: ${isCategory})`);
         if (!db) {
           trySend(socket, { action: "streamUpdate", source: "blinkit", products: [] });
           trySend(socket, { action: "searchResults", total: 0 });
           return;
         }
 
-        // ── Step 1: Hit the SQLite cache first (synchronous, fast) ─────────────
+        // ── Step 1: If it's a category request, perform a robust category-only search and NEVER scrape ─────────────
+        if (isCategory) {
+          let prods = [];
+          
+          // First attempt: Exact match (case-insensitive) on category
+          try {
+            prods = db.prepare(
+              "SELECT * FROM products WHERE category = ? LIMIT 40"
+            ).all(searchTerm.toLowerCase()).map(normalizeProduct);
+          } catch (e) {
+            console.error(`Exact category query failed: ${e.message}`);
+          }
+
+          // Second attempt: LIKE match on category
+          if (prods.length === 0) {
+            try {
+              prods = db.prepare(
+                "SELECT * FROM products WHERE category LIKE ? LIMIT 40"
+              ).all(`%${searchTerm}%`).map(normalizeProduct);
+            } catch (e) {
+              console.error(`LIKE category query failed: ${e.message}`);
+            }
+          }
+
+          // Third attempt: Fallback keyword search
+          if (prods.length === 0) {
+            try {
+              const keywords = searchTerm.trim().split(/\s+/).filter(k => k.length > 0);
+              if (keywords.length > 0) {
+                const conditions = keywords.map(() => '(name LIKE ? OR category LIKE ?)').join(' AND ');
+                const params = [];
+                keywords.forEach(kw => {
+                  const term = `%${kw}%`;
+                  params.push(term, term);
+                });
+                prods = db.prepare(`SELECT * FROM products WHERE ${conditions} LIMIT 40`).all(...params).map(normalizeProduct);
+              }
+            } catch (e) {
+              console.error(`Fallback search query failed: ${e.message}`);
+            }
+          }
+
+          // Category clicks MUST NEVER trigger the live Playwright scraper
+          console.log(`[${cid}] Category load complete. Found ${prods.length} products directly from database.`);
+          trySend(socket, { action: "streamUpdate", source: "blinkit", products: prods });
+          trySend(socket, { action: "searchResults", total: prods.length });
+          return;
+        }
+
+        // ── Step 2: Regular search flow (checks cache first, falls back to live scraper on cache miss) ─────────────
         let prods = [];
         if (searchTerm.toLowerCase() === 'popular') {
           prods = db.prepare("SELECT * FROM products ORDER BY RANDOM() LIMIT 20").all().map(normalizeProduct);

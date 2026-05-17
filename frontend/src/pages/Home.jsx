@@ -63,12 +63,30 @@ function ProductRail({ title, products, query }) {
   );
 }
 
+const formatCategoryName = (name) => {
+  const mapping = {
+    'biscuits': 'Tea & Biscuits',
+    'bread': 'Bakery & Bread',
+    'chips': 'Snacks & Chips',
+    'chocolate': 'Sweet Tooth',
+    'fruits': 'Fruits & Veggies',
+    'ice cream': 'Ice Creams',
+    'maggie': 'Instant Noodles',
+    'milk': 'Dairy & Eggs',
+    'oil': 'Cooking Oils',
+    'rice': 'Atta & Rice',
+    'soap': 'Personal Care',
+    'soft drink': 'Cold Drinks'
+  };
+  return mapping[name?.toLowerCase()] || (name ? name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : '');
+};
+
 export default function Home() {
   const navigate = useNavigate();
   const { categories, featuredProducts } = useHomeContent();
 
   const handleCategoryClick = (cat) => {
-    navigate(`/search?q=${encodeURIComponent(cat.query || cat.name)}`);
+    navigate(`/search?q=${encodeURIComponent(cat.query || cat.name)}`, { state: { isCategory: true } });
   };
 
   return (
@@ -110,7 +128,7 @@ export default function Home() {
                 <div className="w-full aspect-square rounded-2xl bg-gray-50 dark:bg-white/5 flex items-center justify-center overflow-hidden">
                   <img src={cat.image} alt={cat.name} className="w-full h-full object-contain p-2 group-hover:scale-110 transition-transform duration-500" />
                 </div>
-                <span className="text-[10px] font-black text-gray-800 dark:text-gray-200 text-center leading-tight uppercase tracking-wide line-clamp-2">{cat.name}</span>
+                <span className="text-[10px] font-black text-gray-800 dark:text-gray-200 text-center leading-tight uppercase tracking-wide line-clamp-2">{formatCategoryName(cat.name)}</span>
               </motion.button>
             ))}
           </div>

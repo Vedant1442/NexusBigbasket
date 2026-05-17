@@ -30,7 +30,11 @@ function defaultWsUrl() {
   if (import.meta.env.VITE_WS_URL) return import.meta.env.VITE_WS_URL;
   if (typeof window === 'undefined') return 'ws://localhost:5000';
   const { protocol, host } = window.location;
-  const wsHost     = host.includes(':5173') ? host.replace(':5173', ':5000') : host;
+  const wsHost = (host.includes(':5173') || host.includes(':5174') || host.includes(':5175') || host.includes(':5176'))
+    ? host.replace(/:(517\d)$/, ':5000')
+    : (host.includes('localhost') || host.includes('127.0.0.1'))
+      ? host.replace(/:\d+$/, ':5000')
+      : host;
   const wsProtocol = protocol === 'https:' ? 'wss:' : 'ws:';
   return `${wsProtocol}//${wsHost}`;
 }
@@ -220,10 +224,10 @@ const useSearchStore = create((set, get) => ({
   },
 
   // ─────────────────────────────────────────────────────────────────────────
-  // search(query)
-  // Sends a search request over WS, attaching current lat/lon.
+  // search(query, isCategory)
+  // Sends a search request over WS, attaching current lat/lon and category flag.
   // ─────────────────────────────────────────────────────────────────────────
-  search: (query) => {
+  search: (query, isCategory = false) => {
     if (!query?.trim() || !ws || ws.readyState !== WebSocket.OPEN) return;
 
     set({
@@ -231,11 +235,11 @@ const useSearchStore = create((set, get) => ({
       lastQuery:     query,
       products:      emptyProductBuckets(),
       serviceStatus: buildInitialServiceStatus('loading'),
-      statusMessage: `Warping to Blinkit for "${query}"…`,
+      statusMessage: isCategory ? `Loading database category for "${query}"…` : `Warping to Blinkit for "${query}"…`,
       suggestions:   [],
     });
 
-    ws.send(JSON.stringify(withCoords({ action: 'search', searchTerm: query })));
+    ws.send(JSON.stringify(withCoords({ action: 'search', searchTerm: query, isCategory })));
   },
 
   // ─────────────────────────────────────────────────────────────────────────

@@ -40,7 +40,11 @@ import useLocationStore from '../store/useLocationStore';
 function apiBase() {
   if (typeof window === 'undefined') return 'http://localhost:5000';
   const { protocol, host } = window.location;
-  const h = host.includes(':5173') ? host.replace(':5173', ':5000') : host;
+  const h = (host.includes(':5173') || host.includes(':5174') || host.includes(':5175') || host.includes(':5176'))
+    ? host.replace(/:(517\d)$/, ':5000')
+    : (host.includes('localhost') || host.includes('127.0.0.1'))
+      ? host.replace(/:\d+$/, ':5000')
+      : host;
   return `${protocol}//${h}`;
 }
 
