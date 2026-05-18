@@ -6,7 +6,7 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 
-const DB_PATH = path.resolve(__dirname, '..', 'blinkit_v2.db');
+const DB_PATH = process.env.DB_PATH || path.resolve(__dirname, '..', 'blinkit_v2.db');
 
 let db;
 try {
@@ -34,10 +34,21 @@ try {
       items TEXT NOT NULL,
       total_amount REAL NOT NULL,
       status TEXT DEFAULT 'completed',
+      is_group INTEGER DEFAULT 0,
+      shared_with TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY(user_id) REFERENCES users(id)
     )
   `);
+
+  // Safe migration: add group columns to legacy DBs
+  try {
+    db.exec('ALTER TABLE purchases ADD COLUMN is_group INTEGER DEFAULT 0');
+    db.exec('ALTER TABLE purchases ADD COLUMN shared_with TEXT');
+    console.log('🔄 SQLite: added group columns to purchases table');
+  } catch {
+    // Columns already exist
+  }
 
   // Create group_carts table
   db.exec(`

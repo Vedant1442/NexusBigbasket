@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShoppingBag, ChevronRight, Zap } from 'lucide-react';
 import useCartStore from '../../store/useCartStore';
 import useAuthStore from '../../store/useAuthStore';
+import { getApiBase } from '../../config/api';
 
 export default function CartDrawer() {
   const { isCartOpen, closeCart, cart, getCartCount, getSubtotal, removeItem, addItem, clearCart } = useCartStore();
@@ -21,7 +22,7 @@ export default function CartDrawer() {
       }));
       const subtotal = getSubtotal();
       
-      const res = await fetch('http://localhost:5000/api/auth/purchase', {
+      const res = await fetch(`${getApiBase()}/api/auth/purchase`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user?.id || null, items, totalAmount: subtotal + 2 })

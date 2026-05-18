@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Share2, Copy, Trash2, ArrowRight, UserPlus, Shield, Sparkles, CheckCircle2 } from 'lucide-react';
 import useGroupCartStore from '../store/useGroupCartStore';
+import useAuthStore from '../store/useAuthStore';
+import { getApiBase } from '../config/api';
 import ProductCard from '../components/product/ProductCard';
 
 export default function GroupCart() {
   const [searchParams] = useSearchParams();
   const joinCodeParam = searchParams.get('join');
+  const navigate = useNavigate();
 
   const { 
     basket, 
@@ -17,8 +20,65 @@ export default function GroupCart() {
     leaveBasket, 
     notification, 
     userName,
-    isHost
+    isHost,
+    initiateCheckout,
+    confirmCheckout,
+    cancelCheckout
   } = useGroupCartStore();
+
+  const { user } = useAuthStore();
+  const [isProcessingFinal, setIsProcessingFinal] = useState(false);
+
+  const handleFinalCheckout = async () => {
+    if (!basket) return;
+    setIsProcessingFinal(true);
+    try {
+      const items = basket.items.map(i => ({
+        id: i.product.id,
+        name: i.product.name,
+        price: i.product.price,
+        quantity: i.quantity,
+        image: i.product.image || i.product.imageUrl,
+        addedBy: i.addedBy
+      }));
+      
+      const sharedWith = basket.members.map(m => m.name).filter(n => n !== basket.hostName);
+
+      const res = await fetch(`${getApiBase()}/api/auth/purchase`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          userId: user?.id || null, 
+          items, 
+          totalAmount: basket.totalPrice + 2,
+          isGroup: true,
+          sharedWith: sharedWith.join(', ')
+        })
+      });
+      
+      if (!res.ok) throw new Error("Failed to purchase");
+
+      alert('Group order placed successfully!');
+      leaveBasket();
+      navigate('/');
+    } catch (e) {
+      alert('Failed to place order: ' + e.message);
+    }
+    setIsProcessingFinal(false);
+  };
+
+  useEffect(() => {
+    if (basket?.checkoutStatus === 'completed') {
+      if (isHost && !isProcessingFinal) {
+        handleFinalCheckout();
+      } else if (!isHost) {
+        // For non-hosts, wait a brief moment for the alert or just redirect
+        setTimeout(() => {
+          if (!basket) navigate('/'); 
+        }, 1000);
+      }
+    }
+  }, [basket?.checkoutStatus, isHost, basket]);
 
   const [mode, setMode] = useState(joinCodeParam ? 'join' : 'choice');
   const [name, setName] = useState(userName || '');
@@ -47,6 +107,13 @@ export default function GroupCart() {
     if (!basket) return;
     navigator.clipboard.writeText(basket.shareCode);
     alert('Code copied to clipboard!');
+  };
+
+  const shareLink = () => {
+    if (!basket) return;
+    const url = `${window.location.origin}/group-cart?join=${basket.shareCode}`;
+    navigator.clipboard.writeText(url);
+    alert('Share link copied to clipboard!');
   };
 
   // ── Step 1: Choice Screen ──────────────────────────────────────────────────
@@ -146,6 +213,78 @@ export default function GroupCart() {
   // ── Step 2: Active Basket Screen ──────────────────────────────────────────
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 pb-32">
+      {/* Collaborative Checkout Overlay */}
+      <AnimatePresence>
+        {basket.checkoutStatus === 'pending' && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-white dark:bg-[#1a1a1a] w-full max-w-lg rounded-[40px] p-10 shadow-2xl border border-white/10"
+            >
+              <div className="text-center mb-8">
+                <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                  <Shield className="w-10 h-10 text-primary" />
+                </div>
+                <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-3">Wait for Others?</h2>
+                <p className="text-gray-500 dark:text-gray-400 font-medium">
+                  {basket.checkoutInitiatedBy} has initiated checkout. Everyone must confirm before proceeding.
+                </p>
+              </div>
+
+              {/* Confirmation Status */}
+              <div className="space-y-4 mb-10">
+                {basket.members.map((m, i) => {
+                  const hasConfirmed = basket.confirmations.includes(m.name);
+                  return (
+                    <div key={i} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black text-white" style={{ backgroundColor: m.color }}>
+                          {m.name.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="font-bold text-gray-700 dark:text-gray-300">{m.name}</span>
+                      </div>
+                      {hasConfirmed ? (
+                        <div className="flex items-center gap-2 text-green-500 font-black text-xs uppercase tracking-widest">
+                          <CheckCircle2 className="w-4 h-4" /> Ready
+                        </div>
+                      ) : (
+                        <div className="text-gray-400 font-black text-xs uppercase tracking-widest animate-pulse">
+                          Waiting...
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <button 
+                  onClick={cancelCheckout}
+                  className="py-4 bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 rounded-2xl font-black text-sm hover:bg-gray-200 dark:hover:bg-white/10 transition"
+                >
+                  Cancel
+                </button>
+                {basket.confirmations.includes(userName) ? (
+                  <div className="py-4 bg-green-500/20 text-green-500 rounded-2xl font-black text-sm flex items-center justify-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" /> Confirmed
+                  </div>
+                ) : (
+                  <button 
+                    onClick={confirmCheckout}
+                    className="py-4 bg-primary text-white rounded-2xl font-black text-sm hover:bg-primary-hover shadow-lg shadow-primary/20 transition active:scale-95"
+                  >
+                    Confirm & Buy
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header Info */}
       <div className="flex flex-col md:flex-row gap-6 items-start justify-between mb-8">
         <div>
@@ -169,7 +308,7 @@ export default function GroupCart() {
             <button onClick={copyCode} className="p-3 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-2xl transition group" title="Copy Code">
               <Copy className="w-5 h-5 text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
             </button>
-            <button className="p-3 bg-primary text-white rounded-2xl hover:bg-primary-hover shadow-lg shadow-primary/20 transition active:scale-95">
+            <button onClick={shareLink} className="p-3 bg-primary text-white rounded-2xl hover:bg-primary-hover shadow-lg shadow-primary/20 transition active:scale-95" title="Share Link">
               <Share2 className="w-5 h-5" />
             </button>
           </div>
@@ -265,7 +404,10 @@ export default function GroupCart() {
               <span className="font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest text-xs">Total Bill</span>
               <span className="text-2xl font-black text-gray-900 dark:text-white">₹{basket.totalPrice}</span>
             </div>
-            <button className="w-full bg-primary text-white py-4 rounded-2xl font-black shadow-lg shadow-primary/20 flex items-center justify-center gap-2 group transition active:scale-95">
+            <button 
+              onClick={initiateCheckout}
+              className="w-full bg-primary text-white py-4 rounded-2xl font-black shadow-lg shadow-primary/20 flex items-center justify-center gap-2 group transition active:scale-95"
+            >
               Proceed to Checkout <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
             </button>
             <button 

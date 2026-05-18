@@ -315,7 +315,7 @@ function trySend(socket, obj) {
   if (socket.readyState === ws.OPEN) socket.send(JSON.stringify(obj));
 }
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 srv.listen(PORT, "0.0.0.0", () => {
   console.log(`\x1b[32m🚀 NEXUS V2 BLINKIT CORE ACTIVE ON ${PORT}\x1b[0m`);
 });

@@ -20,24 +20,12 @@ import { create } from 'zustand';
 import useLocationStore from './useLocationStore';
 import { emptyProductBuckets, buildInitialServiceStatus } from '../config/activeSources';
 import { _registerWs, routeWsResponse } from '../services/blinkitApi';
+import { getWsBase } from '../config/api';
 
 // ─── Singleton WebSocket ──────────────────────────────────────────────────────
 
 let ws = null;
 let reconnectTimer = null;
-
-function defaultWsUrl() {
-  if (import.meta.env.VITE_WS_URL) return import.meta.env.VITE_WS_URL;
-  if (typeof window === 'undefined') return 'ws://localhost:5000';
-  const { protocol, host } = window.location;
-  const wsHost = (host.includes(':5173') || host.includes(':5174') || host.includes(':5175') || host.includes(':5176'))
-    ? host.replace(/:(517\d)$/, ':5000')
-    : (host.includes('localhost') || host.includes('127.0.0.1'))
-      ? host.replace(/:\d+$/, ':5000')
-      : host;
-  const wsProtocol = protocol === 'https:' ? 'wss:' : 'ws:';
-  return `${wsProtocol}//${wsHost}`;
-}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -80,7 +68,7 @@ const useSearchStore = create((set, get) => ({
       return;
     }
 
-    const url    = defaultWsUrl();
+    const url    = getWsBase();
     console.log('[Nexus] Connecting to Warp Pool:', url);
     const socket = new WebSocket(url);
     ws = socket;

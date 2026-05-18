@@ -43,12 +43,12 @@ router.post('/login', (req, res) => {
 
 // Post-checkout: Save purchase history
 router.post('/purchase', (req, res) => {
-  const { userId, items, totalAmount } = req.body;
+  const { userId, items, totalAmount, isGroup, sharedWith } = req.body;
   if (!db) return res.status(500).json({ error: "DB not available" });
 
   try {
-    db.prepare('INSERT INTO purchases (user_id, items, total_amount) VALUES (?, ?, ?)')
-      .run(userId || null, JSON.stringify(items), totalAmount);
+    db.prepare('INSERT INTO purchases (user_id, items, total_amount, is_group, shared_with) VALUES (?, ?, ?, ?, ?)')
+      .run(userId || null, JSON.stringify(items), totalAmount, isGroup ? 1 : 0, sharedWith || null);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

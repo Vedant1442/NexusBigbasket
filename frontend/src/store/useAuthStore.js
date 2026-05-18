@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { getApiBase } from '../config/api';
 
 const useAuthStore = create(
   persist(
@@ -17,7 +18,7 @@ const useAuthStore = create(
       login: async (email, password) => {
         set({ isLoading: true, error: null });
         try {
-          const res = await fetch('http://localhost:5000/api/auth/login', {
+          const res = await fetch(`${getApiBase()}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
@@ -33,7 +34,7 @@ const useAuthStore = create(
       signup: async (name, email, password) => {
         set({ isLoading: true, error: null });
         try {
-          const res = await fetch('http://localhost:5000/api/auth/signup', {
+          const res = await fetch(`${getApiBase()}/api/auth/signup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, email, password })

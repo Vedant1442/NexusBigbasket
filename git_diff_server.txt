@@ -1,0 +1,248 @@
+﻿diff --git a/backend/server.js b/backend/server.js
+index 50141a6..9026433 100644
+--- a/backend/server.js
++++ b/backend/server.js
+@@ -1,6 +1,5 @@
+ const express = require("express");
+ const http = require("http");
+-const ws = require("ws");
+ const { chromium } = require("playwright");
+ const path = require("path");
+ const blinkitApi = require("./services/blinkit");
+@@ -31,7 +30,6 @@ const authRoutes = require("./routes/authRoutes");
+ app.use("/api/auth", authRoutes);
+ 
+ const srv = http.createServer(app);
+-const wss = new ws.Server({ server: srv });
+ 
+ // Store browser instances (Now used as fallback/session refreshers)
+ let globalBrowser = null;
+@@ -92,228 +90,7 @@ async function initPool() {
+ 
+ initPool();
+ 
+-wss.on("connection", (socket) => {
+-  const cid = Math.random().toString(36).substring(7);
+-  console.log(`[${cid}] Warp Connected`);
+ 
+-  socket.on("message", async (msg) => {
+-    try {
+-      const data = JSON.parse(msg);
+-
+-      /**
+-       * normalizeProduct: strips the Γé╣ prefix from price and converts to a
+-       * plain Number so ProductCard's `product.price > 0` check works correctly.
+-       * Also pulls the category image from the DB row directly.
+-       */
+-      const normalizeProduct = (row) => ({
+-        ...row,
+-        price: parseFloat(String(row.price ?? '0').replace(/[^0-9.]/g, '')) || 0,
+-      });
+-
+-      if (data.action === "getHomeContent") {
+-        console.log(`[${cid}] Fetching Home via SQLite...`);
+-        if (!db) {
+-          trySend(socket, { action: "homeContent", categories: [], products: [] });
+-          return;
+-        }
+-
+-        const defaultCategories = ["Dairy & Eggs", "Fruits & Vegetables", "Snacks", "Bakery", "Cold Drinks", "Instant Food", "Sweet Tooth", "Atta, Rice & Dal", "Meat & Fish", "Personal Care"];
+-
+-        // Get one real product image per category directly from the DB
+-        const catImageRows = db.prepare(
+-          `SELECT category, image FROM products
+-           WHERE category IS NOT NULL AND image IS NOT NULL AND image != 'No Image Found' AND image != ''
+-           GROUP BY category`
+-        ).all();
+-
+-        const catImageMap = {};
+-        catImageRows.forEach(r => { catImageMap[r.category] = r.image; });
+-
+-        // Distinct categories shuffled, max 10
+-        let catRows = Object.keys(catImageMap)
+-          .sort(() => 0.5 - Math.random())
+-          .slice(0, 10);
+-
+-        // Pad to 10 with defaults if needed
+-        while (catRows.length < 10) {
+-          catRows.push(defaultCategories[catRows.length] || `Category ${catRows.length + 1}`);
+-        }
+-
+-        const categories = catRows.map((cat, i) => ({
+-          id: String(i + 1),
+-          name: cat,
+-          image: catImageMap[cat] || null,  // real Cloudinary image from DB
+-        }));
+-
+-        // 10 featured products, prices normalized
+-        const featuredProducts = db.prepare(
+-          "SELECT * FROM products ORDER BY RANDOM() LIMIT 10"
+-        ).all().map(normalizeProduct);
+-
+-        trySend(socket, { action: "homeContent", categories, products: featuredProducts });
+-      }
+-
+-      if (data.action === "search") {
+-        const { searchTerm, lat, lon, isCategory } = data;
+-        console.log(`[${cid}] SQLite Search: "${searchTerm}" (isCategory: ${isCategory})`);
+-        if (!db) {
+-          trySend(socket, { action: "streamUpdate", source: "blinkit", products: [] });
+-          trySend(socket, { action: "searchResults", total: 0 });
+-          return;
+-        }
+-
+-        // ΓöÇΓöÇ Step 1: If it's a category request, perform a robust category-only search and NEVER scrape ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+-        if (isCategory) {
+-          let prods = [];
+-          
+-          // First attempt: Exact match (case-insensitive) on category
+-          try {
+-            prods = db.prepare(
+-              "SELECT * FROM products WHERE category = ? LIMIT 40"
+-            ).all(searchTerm.toLowerCase()).map(normalizeProduct);
+-          } catch (e) {
+-            console.error(`Exact category query failed: ${e.message}`);
+-          }
+-
+-          // Second attempt: LIKE match on category
+-          if (prods.length === 0) {
+-            try {
+-              prods = db.prepare(
+-                "SELECT * FROM products WHERE category LIKE ? LIMIT 40"
+-              ).all(`%${searchTerm}%`).map(normalizeProduct);
+-            } catch (e) {
+-              console.error(`LIKE category query failed: ${e.message}`);
+-            }
+-          }
+-
+-          // Third attempt: Fallback keyword search
+-          if (prods.length === 0) {
+-            try {
+-              const keywords = searchTerm.trim().split(/\s+/).filter(k => k.length > 0);
+-              if (keywords.length > 0) {
+-                const conditions = keywords.map(() => '(name LIKE ? OR category LIKE ?)').join(' AND ');
+-                const params = [];
+-                keywords.forEach(kw => {
+-                  const term = `%${kw}%`;
+-                  params.push(term, term);
+-                });
+-                prods = db.prepare(`SELECT * FROM products WHERE ${conditions} LIMIT 40`).all(...params).map(normalizeProduct);
+-              }
+-            } catch (e) {
+-              console.error(`Fallback search query failed: ${e.message}`);
+-            }
+-          }
+-
+-          // Category clicks MUST NEVER trigger the live Playwright scraper
+-          console.log(`[${cid}] Category load complete. Found ${prods.length} products directly from database.`);
+-          trySend(socket, { action: "streamUpdate", source: "blinkit", products: prods });
+-          trySend(socket, { action: "searchResults", total: prods.length });
+-          return;
+-        }
+-
+-        // ΓöÇΓöÇ Step 2: Regular search flow (checks cache first, falls back to live scraper on cache miss) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+-        let prods = [];
+-        if (searchTerm.toLowerCase() === 'popular') {
+-          prods = db.prepare("SELECT * FROM products ORDER BY RANDOM() LIMIT 20").all().map(normalizeProduct);
+-        } else {
+-          const keywords = searchTerm.trim().split(/\s+/).filter(k => k.length > 0);
+-          if (keywords.length > 0) {
+-            const conditions = keywords.map(() => '(name LIKE ? OR category LIKE ?)').join(' AND ');
+-            const params = [];
+-            keywords.forEach(kw => {
+-              const term = `%${kw}%`;
+-              params.push(term, term);
+-            });
+-            prods = db.prepare(`SELECT * FROM products WHERE ${conditions} LIMIT 20`).all(...params).map(normalizeProduct);
+-          }
+-        }
+-
+-        if (prods.length > 0) {
+-          // Cache HIT ΓÇö respond immediately
+-          trySend(socket, { action: "streamUpdate", source: "blinkit", products: prods });
+-          trySend(socket, { action: "searchResults", total: prods.length });
+-          return;
+-        }
+-
+-        // ΓöÇΓöÇ Step 2: Cache MISS ΓÇö notify UI and spawn the scraper ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+-        // Resolve pincode from client coordinates (async, non-blocking)
+-        const pincode = await getPincode(lat, lon);
+-        console.log(`[${cid}] Cache miss ΓÇö spawning scraper for "${searchTerm}" @ ${pincode}`);
+-
+-        // Tell the frontend we're actively scanning
+-        trySend(socket, {
+-          action: "streamUpdate",
+-          source: "blinkit",
+-          products: [],
+-          scanning: true,
+-          scanMessage: `≡ƒöì Scanning Blinkit for "${searchTerm}"... hang tight!`,
+-        });
+-
+-        // Capture the socket reference before async gap to handle early disconnects
+-        const capturedSocket = socket;
+-
+-        spawnScraper(
+-          searchTerm,
+-          pincode,
+-          // ΓöÇ onComplete ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+-          (freshProducts) => {
+-            // Re-query SQLite so we return fully persisted data (with IDs etc.)
+-            let result = [];
+-            try {
+-              const keywords = searchTerm.trim().split(/\s+/).filter(k => k.length > 0);
+-              if (keywords.length > 0) {
+-                const conditions = keywords.map(() => '(name LIKE ? OR category LIKE ?)').join(' AND ');
+-                const params = [];
+-                keywords.forEach(kw => { params.push(`%${kw}%`, `%${kw}%`); });
+-                result = db.prepare(`SELECT * FROM products WHERE ${conditions} LIMIT 20`)
+-                  .all(...params).map(normalizeProduct);
+-              }
+-            } catch (dbErr) {
+-              console.error(`[${cid}] Post-scrape DB query failed: ${dbErr.message}`);
+-              // Fall back to returning the raw scraper output
+-              result = freshProducts.map(p => ({
+-                ...p,
+-                price: parseFloat(String(p.price ?? '0').replace(/[^0-9.]/g, '')) || 0,
+-              }));
+-            }
+-
+-            trySend(capturedSocket, { action: "streamUpdate", source: "blinkit", products: result });
+-            trySend(capturedSocket, { action: "searchResults", total: result.length });
+-          },
+-          // ΓöÇ onError ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+-          (err) => {
+-            console.error(`[${cid}] Scraper error: ${err.message}`);
+-            trySend(capturedSocket, {
+-              action: "error",
+-              originalAction: "search",
+-              message: "Live scan failed. Please try again or check your connection.",
+-            });
+-            trySend(capturedSocket, { action: "searchResults", total: 0 });
+-          }
+-        );
+-      }
+-
+-      if (data.action === "syncGroupCart") {
+-        // Broadcast the updated basket to all OTHER connected clients
+-        wss.clients.forEach(client => {
+-          if (client !== socket && client.readyState === ws.OPEN) {
+-            client.send(JSON.stringify({
+-              action: "groupCartUpdated",
+-              basket: data.basket
+-            }));
+-          }
+-        });
+-      }
+-
+-    } catch (e) {
+-      console.error(`[${cid}] Message Error:`, e.message);
+-    }
+-  });
+-});
+-
+-function trySend(socket, obj) {
+-  if (socket.readyState === ws.OPEN) socket.send(JSON.stringify(obj));
+-}
+ 
+ const PORT = 5000;
+ srv.listen(PORT, "0.0.0.0", () => {

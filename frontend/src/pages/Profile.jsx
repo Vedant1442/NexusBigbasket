@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Package, User, LogOut, Clock, ShoppingBag } from 'lucide-react';
 import useAuthStore from '../store/useAuthStore';
 import { useNavigate } from 'react-router-dom';
+import { getApiBase } from '../config/api';
 
 export default function Profile() {
   const { user, openAuthModal, signOut } = useAuthStore();
@@ -17,7 +18,7 @@ export default function Profile() {
 
     const fetchProfile = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/auth/profile/${user.id}`);
+        const res = await fetch(`${getApiBase()}/api/auth/profile/${user.id}`);
         const data = await res.json();
         if (data.history) {
           setHistory(data.history);
@@ -108,12 +109,20 @@ export default function Profile() {
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-1 rounded-md">Delivered</span>
+                      {order.is_group === 1 && (
+                        <span className="text-xs font-bold bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-2 py-1 rounded-md flex items-center gap-1">
+                          Group Order
+                        </span>
+                      )}
                       <span className="text-sm font-medium text-gray-500 flex items-center gap-1">
                         <Clock className="w-3 h-3" />
                         {new Date(order.created_at).toLocaleDateString()}
                       </span>
                     </div>
                     <p className="text-xs text-gray-400">Order #{order.id.toString().padStart(6, '0')}</p>
+                    {order.shared_with && (
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 font-medium">Shared with: {order.shared_with}</p>
+                    )}
                   </div>
                   <div className="text-right">
                     <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Total Amount</p>
