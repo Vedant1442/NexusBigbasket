@@ -106,8 +106,8 @@ export default function CartDrawer() {
                         🚚
                       </div>
                       <div>
-                        <h4 className="font-black text-gray-900 dark:text-white text-sm">Blinkit · ~8 min</h4>
-                        <p className="text-[11px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-tight">Quick commerce from Blinkit listings</p>
+                        <h4 className="font-black text-gray-900 dark:text-white text-sm">BigBasket · ~30 min</h4>
+                        <p className="text-[11px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-tight">Fresh from BigBasket hub</p>
                       </div>
                     </div>
                   </div>
@@ -130,7 +130,7 @@ export default function CartDrawer() {
                             />
                             {/* Source Indicator */}
                             <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-lg border-2 border-white flex items-center justify-center shadow-sm
-                              ${product.source === 'blinkit' ? 'bg-yellow-400' : 
+                              ${product.source === 'bigbasket' ? 'bg-yellow-400' : 
                                 product.source === 'zepto' ? 'bg-purple-500' : 
                                 product.source === 'instamart' ? 'bg-orange-500' : 'bg-green-600'}`}
                             >
@@ -151,7 +151,7 @@ export default function CartDrawer() {
                               
                               {/* Quantity Control */}
                               <div className={`flex items-center rounded-xl h-8 w-22 shadow-sm border
-                                ${product.source === 'blinkit' ? 'bg-yellow-400 border-yellow-500' : 
+                                ${product.source === 'bigbasket' ? 'bg-yellow-400 border-yellow-500' : 
                                   product.source === 'zepto' ? 'bg-purple-500 border-purple-600' : 
                                   product.source === 'instamart' ? 'bg-orange-500 border-orange-600' : 'bg-green-600 border-green-700'}`}
                               >
@@ -202,7 +202,7 @@ export default function CartDrawer() {
                   <div className="bg-blue-50/50 dark:bg-blue-500/5 rounded-2xl p-4 flex gap-3 border border-blue-100/50 dark:border-blue-500/10">
                     <div className="text-xl">🛡️</div>
                     <p className="text-[10px] font-bold text-blue-600/80 dark:text-blue-400/80 leading-relaxed uppercase tracking-tight">
-                      Open each product on Blinkit from search results to buy at the listed price. Checkout here is a demo total.
+                      Open each product on BigBasket from search results to buy at the listed price. Checkout here is a demo total.
                     </p>
                   </div>
                 </>

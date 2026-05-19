@@ -1,14 +1,14 @@
 /**
- * frontend/src/services/blinkitApi.js
+ * frontend/src/services/bigbasketApi.js
  * ────────────────────────────────────
- * Frontend service layer for all Blinkit API interactions.
+ * Frontend service layer for all BigBasket API interactions.
  *
  * Architecture
  * ────────────
- * The browser cannot call Blinkit's internal API directly (CORS).
+ * The browser cannot call BigBasket's internal API directly (CORS).
  * All requests are routed through the NEXUS backend:
  *
- *   Component  →  blinkitApi.*()  →  WS / REST  →  backend  →  blinkit.com/v1
+ *   Component  →  bigbasketApi.*()  →  WS / REST  →  backend  →  bigbasket.com/v1
  *
  * Two transports are used depending on call type:
  *   WebSocket (ws)  — real-time search & home content (managed by useSearchStore)

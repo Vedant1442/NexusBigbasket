@@ -1,15 +1,14 @@
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, Zap } from 'lucide-react';
 import useCartStore from '../../store/useCartStore';
 import useGroupCartStore from '../../store/useGroupCartStore';
 
 const SOURCE_STYLES = {
-  blinkit: {
+  bigbasket: {
     badge: 'bg-yellow-400 text-yellow-900',
     addBtn: 'border-yellow-500 text-yellow-700 hover:bg-yellow-50 dark:hover:bg-yellow-500/10 dark:bg-transparent dark:text-yellow-500',
     counterBg: 'bg-yellow-400 text-yellow-900',
-    label: 'Blinkit',
+    label: 'BigBasket',
   },
   zepto: {
     badge: 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300',
@@ -33,14 +32,14 @@ const SOURCE_STYLES = {
 
 export default function ProductCard({ product }) {
   const { cart, addItem, removeItem } = useCartStore();
-  const { basket, addItem: addGroupItem, removeItem: removeGroupItem, userName } = useGroupCartStore();
+  const { basket, addItem: addGroupItem, removeItem: removeGroupItem } = useGroupCartStore();
   
   const inGroup = !!basket;
   const qty = inGroup 
     ? (basket.items.find(i => i.product.id === product.id)?.quantity || 0)
     : (cart[product.id]?.quantity || 0);
     
-  const style = SOURCE_STYLES[product.source] || SOURCE_STYLES.blinkit;
+  const style = SOURCE_STYLES[product.source] || SOURCE_STYLES.bigbasket;
 
   const hasDiscount = product.discount > 0;
   const hasMRP = product.mrp && product.mrp > product.price && product.mrp !== product.price;

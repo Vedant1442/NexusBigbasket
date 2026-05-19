@@ -1,12 +1,12 @@
 /**
  * config/sqlite.js
- * Opens (or creates) blinkit_v2.db and exports a shared synchronous DB handle.
- * Place blinkit_v2.db in the backend/ directory (same folder as server.js).
+ * Opens (or creates) bigbasket.db and exports a shared synchronous DB handle.
+ * Place bigbasket.db in the backend/ directory (same folder as server.js).
  */
 const Database = require('better-sqlite3');
 const path = require('path');
 
-const DB_PATH = process.env.DB_PATH || path.resolve(__dirname, '..', 'blinkit_v2.db');
+const DB_PATH = process.env.DB_PATH || path.resolve(__dirname, '..', 'bigbasket.db');
 
 let db;
 try {
@@ -41,11 +41,10 @@ try {
     )
   `);
 
-  // Safe migration: add group columns to legacy DBs
+  // Safe migration: add group columns
   try {
     db.exec('ALTER TABLE purchases ADD COLUMN is_group INTEGER DEFAULT 0');
     db.exec('ALTER TABLE purchases ADD COLUMN shared_with TEXT');
-    console.log('🔄 SQLite: added group columns to purchases table');
   } catch {
     // Columns already exist
   }
@@ -59,40 +58,6 @@ try {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
-
-  // ── Products table (populated by scraper.py via Playwright) ───────────────
-  // This table already exists in blinkit_v2.db with pre-seeded data.
-  // The CREATE IF NOT EXISTS is a safety net for fresh installs.
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS products (
-      id         INTEGER PRIMARY KEY AUTOINCREMENT,
-      name       TEXT,
-      price      TEXT,
-      image      TEXT,
-      category   TEXT,
-      quantity   TEXT,
-      source     TEXT DEFAULT 'Blinkit',
-      productUrl TEXT,
-      pincode    TEXT,
-      UNIQUE(name, pincode)
-    )
-  `);
-
-  // Safe migration: add pincode column to legacy DBs that predate the scraper
-  try {
-    db.exec('ALTER TABLE products ADD COLUMN pincode TEXT');
-    console.log('🔄 SQLite: added pincode column to products table');
-  } catch {
-    // Column already exists — no action needed
-  }
-
-  // Safe migration: add productUrl column to legacy DBs
-  try {
-    db.exec('ALTER TABLE products ADD COLUMN productUrl TEXT');
-    console.log('🔄 SQLite: added productUrl column to products table');
-  } catch {
-    // Column already exists — no action needed
-  }
 
   console.log(`✅ SQLite connected (Read/Write): ${DB_PATH}`);
 } catch (err) {

@@ -27,7 +27,7 @@ export function useHomeContent() {
     if (isConnected) {
       fetchHomeContent();
     }
-  }, [isConnected]);
+  }, [isConnected, fetchHomeContent]);
 
   return {
     /** Categories array from backend (may be empty while loading) */

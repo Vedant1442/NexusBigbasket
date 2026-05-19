@@ -1,6 +1,6 @@
 # ⚡ NEXUS V2 - Hyperlocal Delivery Aggregator
 
-NEXUS V2 is a premium, state-of-the-art quick-commerce delivery aggregator that unifies shopping across major quick-commerce platforms like **Blinkit**, **Zepto**, and **Instamart**. 
+NEXUS V2 is a premium, state-of-the-art quick-commerce delivery aggregator that unifies shopping across major quick-commerce platforms like **BigBasket**, **Zepto**, and **Instamart**. 
 
 By leveraging high-speed direct API communication, an active Playwright background scraper pipeline, and real-time WebSocket syncing, NEXUS V2 aggregates live inventory, pricing, and delivery estimates tailored to the user's micro-location.
 
@@ -30,8 +30,8 @@ flowchart TB
     end
 
     subgraph Data [Data & Persistence]
-        DB[(SQLite: blinkit_v2.db)]
-        BAPI[Official Blinkit API]
+        DB[(SQLite: bigbasket_v2.db)]
+        BAPI[Official BigBasket API]
         Cloud[Cloudinary CDN]
     end
 
@@ -71,7 +71,7 @@ flowchart TB
 
 ### 1. 📡 Full-Duplex WebSockets ("Warp Pool")
 Rather than utilizing traditional HTTP polling that creates overhead, NEXUS V2 leverages a persistent full-duplex WebSocket connection between the React client and the backend server.
-- **Connection Handlers**: The client [useSearchStore.js](file:///d:/CODES/NEXUS-V2/frontend/src/store/useSearchStore.js) opens the connection, listens for stream updates, and routes single-shot responses to promise-based API callbacks in [blinkitApi.js](file:///d:/CODES/NEXUS-V2/frontend/src/services/blinkitApi.js).
+- **Connection Handlers**: The client [useSearchStore.js](file:///d:/CODES/NEXUS-V2/frontend/src/store/useSearchStore.js) opens the connection, listens for stream updates, and routes single-shot responses to promise-based API callbacks in [bigbasketApi.js](file:///d:/CODES/NEXUS-V2/frontend/src/services/bigbasketApi.js).
 - **Graceful Recovery**: Incorporates a built-in reconnect loop with a 3-second automatic back-off timer to handle local network drops or backend service restarts seamlessly.
 
 ### 2. ⚡ The Dual-Path Search Pipeline
@@ -155,7 +155,7 @@ NEXUS-V2/
 │   ├── scripts/                    
 │   │   └── seedProducts.js         # Core database seeder script
 │   ├── services/                   
-│   │   ├── blinkit.js              # Direct API evaluated evaluate contexts
+│   │   ├── bigbasket.js              # Direct API evaluated evaluate contexts
 │   │   └── scraperBridge.js        # Subprocess spawners & thundering herd mitigations
 │   ├── scraper.py                  # Highly optimized python Playwright scraper
 │   ├── proxies.txt                 # Optional list of routing proxies
@@ -173,7 +173,7 @@ NEXUS-V2/
 │       │   └── product/            
 │       │       └── ProductCard.jsx    # Premium HSL themed cards with buy triggers
 │       ├── config/                 
-│       │   └── activeSources.js       # Source configs (currently Blinkit only)
+│       │   └── activeSources.js       # Source configs (currently BigBasket only)
 │       ├── hooks/                  # Zustand-to-React custom binding hooks
 │       ├── pages/                  
 │       │   ├── GroupCart.jsx          # Alphanumeric collaborative cart page
@@ -181,7 +181,7 @@ NEXUS-V2/
 │       │   ├── Profile.jsx            # User settings & order history
 │       │   └── SearchResults.jsx      # Streaming results with scanning states
 │       ├── services/               
-│       │   └── blinkitApi.js          # WS Promise-based wrappers
+│       │   └── bigbasketApi.js          # WS Promise-based wrappers
 │       └── store/                  
 │           ├── useAuthStore.js        # Local customer logins
 │           ├── useCartStore.js        # Individual local cart state
@@ -221,7 +221,7 @@ Create `.env` files in both directories based on the templates:
 ```ini
 PORT=5000
 DEFAULT_PINCODE=560034
-DB_PATH=blinkit_v2.db
+DB_PATH=bigbasket_v2.db
 USE_PROXIES=false
 
 # Optional Cloudinary CDN Configuration for product images

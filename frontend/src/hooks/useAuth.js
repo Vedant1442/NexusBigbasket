@@ -11,7 +11,6 @@ export function useAuth() {
     token,
     user,
     phone,
-    requestId,
     isLoading,
     error,
     step,
@@ -46,7 +45,7 @@ export function useAuth() {
 
     /**
      * Step 2 — verify the OTP entered by the user.
-     * Uses the phone and requestId stored from step 1.
+     * Uses the phone stored from step 1.
      * @param {string} otp  6-digit code
      */
     confirmOtp,

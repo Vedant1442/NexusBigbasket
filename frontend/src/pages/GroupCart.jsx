@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Share2, Copy, Trash2, ArrowRight, UserPlus, Shield, Sparkles, CheckCircle2 } from 'lucide-react';
 import useGroupCartStore from '../store/useGroupCartStore';
 import useAuthStore from '../store/useAuthStore';
 import { getApiBase } from '../config/api';
-import ProductCard from '../components/product/ProductCard';
 
 export default function GroupCart() {
   const [searchParams] = useSearchParams();
@@ -16,7 +15,6 @@ export default function GroupCart() {
     basket, 
     createBasket, 
     joinBasket, 
-    fetchBasket,
     leaveBasket, 
     notification, 
     userName,
@@ -29,8 +27,8 @@ export default function GroupCart() {
   const { user } = useAuthStore();
   const [isProcessingFinal, setIsProcessingFinal] = useState(false);
 
-  const handleFinalCheckout = async () => {
-    if (!basket) return;
+  const handleFinalCheckout = useCallback(async () => {
+    if (!basket || isProcessingFinal) return;
     setIsProcessingFinal(true);
     try {
       const items = basket.items.map(i => ({
@@ -63,33 +61,39 @@ export default function GroupCart() {
       navigate('/');
     } catch (e) {
       alert('Failed to place order: ' + e.message);
+    } finally {
+      setIsProcessingFinal(false);
     }
-    setIsProcessingFinal(false);
-  };
+  }, [basket, user, leaveBasket, navigate, isProcessingFinal]);
 
   useEffect(() => {
     if (basket?.checkoutStatus === 'completed') {
       if (isHost && !isProcessingFinal) {
-        handleFinalCheckout();
+        // Use setTimeout to avoid synchronous setState in effect
+        const timer = setTimeout(handleFinalCheckout, 0);
+        return () => clearTimeout(timer);
       } else if (!isHost) {
-        // For non-hosts, wait a brief moment for the alert or just redirect
-        setTimeout(() => {
+        const timer = setTimeout(() => {
           if (!basket) navigate('/'); 
         }, 1000);
+        return () => clearTimeout(timer);
       }
     }
-  }, [basket?.checkoutStatus, isHost, basket]);
+  }, [basket?.checkoutStatus, isHost, basket, isProcessingFinal, handleFinalCheckout, navigate]);
 
   const [mode, setMode] = useState(joinCodeParam ? 'join' : 'choice');
   const [name, setName] = useState(userName || '');
   const [joinCode, setJoinCode] = useState(joinCodeParam || '');
 
-  useEffect(() => {
+  // Adjust state when joinCodeParam changes externally
+  const [prevJoinCodeParam, setPrevJoinCodeParam] = useState(joinCodeParam);
+  if (joinCodeParam !== prevJoinCodeParam) {
+    setJoinCode(joinCodeParam || '');
+    setPrevJoinCodeParam(joinCodeParam);
     if (joinCodeParam && !basket) {
-      setMode('join');
-      setJoinCode(joinCodeParam);
+       setMode('join');
     }
-  }, [joinCodeParam, basket]);
+  }
 
   const handleCreate = (e) => {
     e.preventDefault();
@@ -161,7 +165,7 @@ export default function GroupCart() {
             <p className="text-sm text-gray-400 dark:text-gray-500 mb-8 font-medium">Enter a friend's share code to start adding items to their shared cart.</p>
             <button 
               onClick={() => setMode('join')}
-              className="mt-auto w-full bg-white dark:bg-white/5 text-gray-900 dark:text-white border-2 border-gray-100 dark:border-white/10 py-4 rounded-2xl font-black text-sm hover:bg-gray-50 dark:hover:bg-white/10 transition active:scale-95"
+              className="mt-auto w-full bg-white dark:bg-white/5 text-gray-900 dark:text-white border-2 border-gray-100 dark:border-white/10 py-4 rounded-2xl font-black text-sm hover:bg-50 dark:hover:bg-white/10 transition active:scale-95"
             >
               Enter Join Code
             </button>
@@ -169,10 +173,11 @@ export default function GroupCart() {
         </div>
 
         {/* Forms */}
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {mode === 'create' && (
             <motion.form 
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              key="create"
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
               onSubmit={handleCreate} className="mt-12 max-w-sm mx-auto bg-white dark:bg-[#1a1a1a] p-8 rounded-3xl border border-primary/20 shadow-xl"
             >
               <h4 className="text-lg font-black mb-4 dark:text-white">Set your display name</h4>
@@ -188,7 +193,8 @@ export default function GroupCart() {
 
           {mode === 'join' && (
             <motion.form 
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              key="join"
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
               onSubmit={handleJoin} className="mt-12 max-w-sm mx-auto bg-white dark:bg-[#1a1a1a] p-8 rounded-3xl border border-blue-200 dark:border-blue-500/20 shadow-xl"
             >
               <h4 className="text-lg font-black mb-4 dark:text-white">Join shared basket</h4>
@@ -329,7 +335,8 @@ export default function GroupCart() {
                 ))}
               </div>
             </div>
-<div className="divide-y divide-gray-50 dark:divide-white/5">
+
+            <div className="divide-y divide-gray-50 dark:divide-white/5">
               {basket.items.length === 0 ? (
                 <div className="py-20 text-center">
                   <div className="text-4xl mb-4">🛒</div>
@@ -338,7 +345,7 @@ export default function GroupCart() {
               ) : (
                 basket.items.map((item, idx) => (
                   <div key={idx} className="p-6 flex items-center gap-6 group hover:bg-gray-50/50 dark:hover:bg-white/5 transition">
-                    <img src={item.product.image || item.product.imageUrl} className="w-20 h-20 object-contain rounded-2xl border border-gray-100 dark:border-white/10 p-2 bg-white" />
+                    <img src={item.product.image || item.product.imageUrl} className="w-20 h-20 object-contain rounded-2xl border border-gray-100 dark:border-white/10 p-2 bg-white" alt={item.product.name} />
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-[10px] font-black uppercase text-primary bg-primary/5 px-2 py-0.5 rounded-lg border border-primary/10">
@@ -411,7 +418,7 @@ export default function GroupCart() {
               Proceed to Checkout <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
             </button>
             <button 
-              onClick={() => { if(confirm('Leave group?')) leaveBasket(); }}
+              onClick={() => { if(window.confirm('Leave group?')) leaveBasket(); }}
               className="w-full mt-4 text-gray-400 font-bold text-xs uppercase tracking-widest hover:text-red-500 transition"
             >
               Leave Group Session

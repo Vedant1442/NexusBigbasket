@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Search, ShoppingCart, Users, ChevronDown, Wifi, WifiOff, Zap, Sun, Moon } from 'lucide-react';
+import { Search, ShoppingCart, Users, ChevronDown, Sun, Moon } from 'lucide-react';
 import useCartStore from '../../store/useCartStore';
 import useLocationStore from '../../store/useLocationStore';
 import useSearchStore from '../../store/useSearchStore';
@@ -33,12 +33,12 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex items-center gap-1 cursor-pointer flex-shrink-0">
            <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-[#0c831f] rounded-xl flex items-center justify-center text-white shadow-lg shadow-green-200/50 group-hover:scale-105 transition-transform">
-              <Zap className="w-6 h-6 fill-white" />
+            <div className="w-10 h-10 bg-[#84c225] rounded-xl flex items-center justify-center text-white shadow-lg shadow-green-200/50 group-hover:scale-105 transition-transform">
+              <ShoppingCart className="w-6 h-6 fill-white" />
             </div>
             <div className="flex flex-col leading-none">
-              <span className="text-xl font-black text-gray-900 dark:text-white tracking-tighter">NEXUS</span>
-              <span className="text-[10px] font-bold text-[#0c831f] tracking-widest uppercase opacity-70">Blinkit Edition</span>
+              <span className="text-xl font-black text-gray-900 dark:text-white tracking-tighter">BigBasket</span>
+              <span className="text-[10px] font-bold text-[#ed1c24] tracking-widest uppercase opacity-70">Hyperlocal Hub</span>
             </div>
           </Link>  {/* WS status dot */}
             <span className={`w-2 h-2 rounded-full ml-1 ${isConnected ? 'bg-green-400' : 'bg-red-400'}`} title={isConnected ? 'Scraper connected' : 'Scraper offline'} />

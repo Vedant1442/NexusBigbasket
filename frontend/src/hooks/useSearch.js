@@ -45,7 +45,7 @@ export function useSearch() {
   );
 
   return {
-    /** Flat product arrays keyed by source, e.g. { blinkit: [...] } */
+    /** Flat product arrays keyed by source, e.g. { bigbasket: [...] } */
     results: products,
     /** Convenience: all products across all sources as a single flat array */
     allResults: Object.values(products).flat(),

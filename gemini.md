@@ -7,13 +7,13 @@ This document details the root causes and outlines the exact steps required to f
 ## 🔍 Root Cause Analysis
 
 ### 1. Hardcoded `localhost:5000` URLs
-While `useAuthStore.js` and `blinkitApi.js` correctly use the dynamic `getApiBase()` utility, three key components are hardcoded to `http://localhost:5000`. This causes all checkout, purchase saving, profile loading, and group cart updates to fail in production by requesting the local server.
+While `useAuthStore.js` and `bigbasketApi.js` correctly use the dynamic `getApiBase()` utility, three key components are hardcoded to `http://localhost:5000`. This causes all checkout, purchase saving, profile loading, and group cart updates to fail in production by requesting the local server.
 *   **Group Cart Saves**: `useGroupCartStore.js` hardcodes `http://localhost:5000/api/group-cart/...`
 *   **Checkout Purchases**: `CartDrawer.jsx` hardcodes `http://localhost:5000/api/auth/purchase`
 *   **Profile History**: `Profile.jsx` hardcodes `http://localhost:5000/api/auth/profile/...`
 
 ### 2. Hostname Fallback Ambiguity
-When deployed to Vercel, `getApiBase()` and `defaultWsUrl()` fallback to `window.location.host` (the Vercel frontend domain) if environment variables are not set. Vercel is a serverless environment and cannot run the persistent HTTP/WebSocket server or the Playwright scraper. Hence, all API and WS requests to `https://nexus-blinkit.vercel.app` return HTML/404s, crashing the JavaScript store parsing.
+When deployed to Vercel, `getApiBase()` and `defaultWsUrl()` fallback to `window.location.host` (the Vercel frontend domain) if environment variables are not set. Vercel is a serverless environment and cannot run the persistent HTTP/WebSocket server or the Playwright scraper. Hence, all API and WS requests to `https://nexus-bigbasket.vercel.app` return HTML/404s, crashing the JavaScript store parsing.
 
 ---
 
@@ -76,9 +76,9 @@ Configure these on your Render Web Service dashboard:
 ---
 
 ## ⚡ SQLite Persistence Notice on Render
-Because SQLite uses a local file (`blinkit_v2.db`), Render's free/standard instances will reset the database whenever the server restarts or spins down due to inactivity. 
+Because SQLite uses a local file (`bigbasket_v2.db`), Render's free/standard instances will reset the database whenever the server restarts or spins down due to inactivity. 
 *   **Impact**: Saved users, purchases, and active group cart baskets will be lost when the Render service restarts.
-*   **Mitigation**: For persistent data, you can attach a **Render Persistent Disk** and configure the DB path in `sqlite.js` to write to the mounted disk directory (e.g., `/data/blinkit_v2.db`).
+*   **Mitigation**: For persistent data, you can attach a **Render Persistent Disk** and configure the DB path in `sqlite.js` to write to the mounted disk directory (e.g., `/data/bigbasket_v2.db`).
 
 ---
 

@@ -1,0 +1,980 @@
+{
+  "props": {
+    "pageProps": {
+      "productDetails": {
+        "isComboAvailable": false,
+        "isCosmetic": false,
+        "children": [
+          {
+            "base_img_url": "https://www.bbassets.com/media/uploads",
+            "visibility": {
+              "path_id": 10864,
+              "fc_id": 1820,
+              "sa_id": 19224,
+              "supply_chain_ecs": null
+            },
+            "id": "40353641",
+            "external_entity": null,
+            "inv_info": {
+              "skus": [
+                {
+                  "id": 40353641,
+                  "qty": 1,
+                  "fc_id": 1820
+                }
+              ]
+            },
+            "desc": "Strawberry Burst Dotted Condoms",
+            "pack_desc": "",
+            "w": "10 pcs",
+            "additional_info": {
+              "key_highlights": [],
+              "assurance_widget": [],
+              "ppu": {
+                "url": "",
+                "label": "Per unit Price",
+                "type": "ppu"
+              }
+            },
+            "absolute_url": "/pd/40353641/unfold-strawberry-burst-dotted-condoms-10-pcs/",
+            "usp": "",
+            "cart_count": 0,
+            "aplus_url": null,
+            "images": [
+              {
+                "s": "https://www.bbassets.com/media/uploads/p/s/40353641_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "m": "https://www.bbassets.com/media/uploads/p/m/40353641_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "l": "https://www.bbassets.com/media/uploads/p/l/40353641_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xl": "https://www.bbassets.com/media/uploads/p/xl/40353641_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353641_1-unfold-strawberry-burst-dotted-condoms.jpg"
+              },
+              {
+                "s": "https://www.bbassets.com/media/uploads/p/s/40353641-2_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "m": "https://www.bbassets.com/media/uploads/p/m/40353641-2_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "l": "https://www.bbassets.com/media/uploads/p/l/40353641-2_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xl": "https://www.bbassets.com/media/uploads/p/xl/40353641-2_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353641-2_1-unfold-strawberry-burst-dotted-condoms.jpg"
+              },
+              {
+                "s": "https://www.bbassets.com/media/uploads/p/s/40353641-3_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "m": "https://www.bbassets.com/media/uploads/p/m/40353641-3_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "l": "https://www.bbassets.com/media/uploads/p/l/40353641-3_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xl": "https://www.bbassets.com/media/uploads/p/xl/40353641-3_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353641-3_1-unfold-strawberry-burst-dotted-condoms.jpg"
+              },
+              {
+                "s": "https://www.bbassets.com/media/uploads/p/s/40353641-4_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "m": "https://www.bbassets.com/media/uploads/p/m/40353641-4_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "l": "https://www.bbassets.com/media/uploads/p/l/40353641-4_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xl": "https://www.bbassets.com/media/uploads/p/xl/40353641-4_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353641-4_1-unfold-strawberry-burst-dotted-condoms.jpg"
+              },
+              {
+                "s": "https://www.bbassets.com/media/uploads/p/s/40353641-5_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "m": "https://www.bbassets.com/media/uploads/p/m/40353641-5_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "l": "https://www.bbassets.com/media/uploads/p/l/40353641-5_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xl": "https://www.bbassets.com/media/uploads/p/xl/40353641-5_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353641-5_1-unfold-strawberry-burst-dotted-condoms.jpg"
+              },
+              {
+                "s": "https://www.bbassets.com/media/uploads/p/s/40353641-6_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "m": "https://www.bbassets.com/media/uploads/p/m/40353641-6_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "l": "https://www.bbassets.com/media/uploads/p/l/40353641-6_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xl": "https://www.bbassets.com/media/uploads/p/xl/40353641-6_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353641-6_1-unfold-strawberry-burst-dotted-condoms.jpg"
+              },
+              {
+                "s": "https://www.bbassets.com/media/uploads/p/s/40353641-7_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "m": "https://www.bbassets.com/media/uploads/p/m/40353641-7_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "l": "https://www.bbassets.com/media/uploads/p/l/40353641-7_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xl": "https://www.bbassets.com/media/uploads/p/xl/40353641-7_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353641-7_1-unfold-strawberry-burst-dotted-condoms.jpg"
+              },
+              {
+                "s": "https://www.bbassets.com/media/uploads/p/s/40353641-8_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "m": "https://www.bbassets.com/media/uploads/p/m/40353641-8_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "l": "https://www.bbassets.com/media/uploads/p/l/40353641-8_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xl": "https://www.bbassets.com/media/uploads/p/xl/40353641-8_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353641-8_1-unfold-strawberry-burst-dotted-condoms.jpg"
+              },
+              {
+                "s": "https://www.bbassets.com/media/uploads/p/s/40353641-9_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "m": "https://www.bbassets.com/media/uploads/p/m/40353641-9_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "l": "https://www.bbassets.com/media/uploads/p/l/40353641-9_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xl": "https://www.bbassets.com/media/uploads/p/xl/40353641-9_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353641-9_1-unfold-strawberry-burst-dotted-condoms.jpg"
+              }
+            ],
+            "variable_weight": null,
+            "brand": {
+              "name": "Unfold",
+              "slug": "unfold",
+              "url": "/pb/unfold/"
+            },
+            "category": {
+              "tlc_name": "Beauty & Hygiene",
+              "tlc_slug": "beauty-hygiene",
+              "llc_name": "Condoms",
+              "llc_slug": "type=pc&slug=condoms",
+              "llc_id": 2105
+            },
+            "additional_attr": {
+              "bby_lod": null,
+              "info": []
+            },
+            "tabs": [
+              {
+                "content": "<style type=\"text/css\"> @import url(\"https://www.bbassets.com/static/froala_style_v2.min.css\"); </style>\n        <div style=\"font-family: 'ProximaNova-Regular';font-size:13px;line-height: 18px;color:8f8f8f;\">\n            <p>UNFOLD is rooted in the belief that sexual intimacy is a\nvoyage of discovery, where each touch and embrace gently unveils vulnerability,\nfostering a deep connection between partners. Amid the waves of passion and\npleasure, UNFOLD condoms provide trust and safety for your most cherished\nmoments.</p>\n<p>Crafted from natural rubber latex, these transparent,\nlubricated condoms are infused with a delightful strawberry flavour to elevate\nthe experience. Designed with over 500 stimulating dots for enhanced pleasure,\nthey feature a teat-ended, straight-walled shape with a nominal width of 53 ±\n2mm and a minimum length of 180mm. As a mechanical contraceptive intended for\nsingle use, they offer reliable protection, though not absolute, against\npregnancy, HIV, or other sexually transmitted infections. For detailed guidance,\nconsult the leaflet included in the pack. Store in a cool, dry place, away from\nheat and direct sunlight, and keep out of reach of children. Rigorously tested,\nUNFOLD ensures quality and confidence.</p>\n<p>UNFOLD invites you to immerse in intimacy, blending trust,\nsafety, and sensory delight to strengthen your bond.</p>\n\n        </div>",
+                "title": "About the Product"
+              },
+              {
+                "content": "<style type=\"text/css\"> @import url(\"https://www.bbassets.com/static/froala_style_v2.min.css\"); </style>\n        <div style=\"font-family: 'ProximaNova-Regular';font-size:13px;line-height: 18px;color:8f8f8f;\">\n            <p>EAN Code: 40353641  </p><br><p>Manufactured By: Cipla Health Ltd Cupid Limited, A-68, MIDC\n(Malegaon), Sinnar, Nashik-422113, Maharashtra, India</p>\n<p>Marketed By Cipla Health Limited, FOFB-11, B-Wing, 4th\nFloor, Art Guild House, Phoenix Market city, L.B.S. Marg, Kurla (West), Mumbai\n- 400070, Maharashtra</p>\n<p>&nbsp;<br></p><br><p> Country of Origin: India </p><br><p> Best Before 04-11-2028.</p><p>Disclaimer: The expiry date shown here is for indicative purposes only. Please refer to the information provided on the product package received at delivery for the actual expiry date. </p><p> For Queries/Feedback/Complaints, Contact our customer care executive at 1860 123 1000 | Address: Innovative Retail Concepts Private Limited, Ranka Junction 4th Floor, Tin Factory Bus Stop. KR Puram, Bangalore-560016, Email: customerservice@bigbasket.com</p>\n        </div>",
+                "title": "Other Product Info"
+              }
+            ],
+            "tags": [
+              {
+                "header": "OCCASION",
+                "values": [
+                  {
+                    "display_name": "Valentine",
+                    "dest_type": "product_list",
+                    "dest_slug": "type=tag&slug=occasion--valentine",
+                    "url": "/ts/5126/occasion/valentine"
+                  }
+                ]
+              },
+              {
+                "header": "NUMBER OF PIECES",
+                "values": [
+                  {
+                    "display_name": "10-pcs",
+                    "dest_type": "product_list",
+                    "dest_slug": "type=tag&slug=number-of-pieces_1--10-pcs",
+                    "url": "/ts/13575/number-of-pieces_1/10-pcs"
+                  }
+                ]
+              },
+              {
+                "header": "NON MILK",
+                "values": [
+                  {
+                    "display_name": "Non Milk",
+                    "dest_type": "product_list",
+                    "dest_slug": "type=tag&slug=non-milk--non-milk",
+                    "url": "/ts/19513/non-milk/non-milk"
+                  }
+                ]
+              },
+              {
+                "header": "SEXUAL HEALTH",
+                "values": [
+                  {
+                    "display_name": "Sexual Wellness",
+                    "dest_type": "product_list",
+                    "dest_slug": "type=tag&slug=sexual-health--sexual-wellness",
+                    "url": "/ts/18925/sexual-health/sexual-wellness"
+                  }
+                ]
+              },
+              {
+                "header": "PHARMA STORE",
+                "values": [
+                  {
+                    "display_name": "Sexual Wellness",
+                    "dest_type": "product_list",
+                    "dest_slug": "type=tag&slug=pharma-store--sexual-wellness",
+                    "url": "/ts/17824/pharma-store/sexual-wellness"
+                  }
+                ]
+              },
+              {
+                "header": "COUNTRY OF ORIGIN",
+                "values": [
+                  {
+                    "display_name": "India",
+                    "dest_type": "product_list",
+                    "dest_slug": "type=tag&slug=country-of-origin--india",
+                    "url": "/ts/173/country-of-origin/india"
+                  }
+                ]
+              },
+              {
+                "header": "FLAVOUR",
+                "values": [
+                  {
+                    "display_name": "Strawberry",
+                    "dest_type": "product_list",
+                    "dest_slug": "type=tag&slug=flavour_1--strawberry_1",
+                    "url": "/ts/8738/flavour_1/strawberry_1"
+                  }
+                ]
+              },
+              {
+                "header": "WOMEN’S WELLNESS",
+                "values": [
+                  {
+                    "display_name": "Sexual & Sanitary Needs",
+                    "dest_type": "product_list",
+                    "dest_slug": "type=tag&slug=womens-wellness--sexual-sanitary-needs",
+                    "url": "/ts/19509/womens-wellness/sexual-sanitary-needs"
+                  }
+                ]
+              }
+            ],
+            "combo": null,
+            "breadcrumb": [
+              {
+                "id": 445,
+                "name": "beauty & hygiene",
+                "slug": "beauty-hygiene",
+                "type": "pc",
+                "url": "/cl/beauty-hygiene/"
+              },
+              {
+                "id": 1522,
+                "name": "sexual wellness",
+                "slug": "sexual-wellness",
+                "type": "pc",
+                "url": "/pc/beauty-hygiene/sexual-wellness/"
+              },
+              {
+                "id": 2105,
+                "name": "condoms",
+                "slug": "condoms",
+                "type": "pc",
+                "url": "/pc/beauty-hygiene/sexual-wellness/condoms/"
+              }
+            ],
+            "rating_info": {
+              "avg_rating": "4",
+              "rating_count": 21,
+              "review_count": 0,
+              "sku_id": 40353641
+            },
+            "availability": {
+              "avail_status": "001",
+              "short_eta": null,
+              "medium_eta": null,
+              "long_eta": null,
+              "label": null,
+              "display_mrp": true,
+              "display_sp": true,
+              "not_for_sale": false,
+              "button": "Add",
+              "show_express": null
+            },
+            "is_tobacco": false,
+            "pricing": {
+              "offer": {},
+              "discount": {
+                "mrp": "90",
+                "d_text": "15% OFF",
+                "d_avail": "true",
+                "prim_price": {
+                  "sp": "76.5",
+                  "icon": {
+                    "base_url": null,
+                    "image": null,
+                    "format": null
+                  },
+                  "desc": "",
+                  "base_price": "7.65",
+                  "base_unit": "pc"
+                },
+                "sec_price": {
+                  "sp": null,
+                  "icon": null,
+                  "desc": null,
+                  "background": null
+                },
+                "offer_entry_text": "",
+                "offer_available": "false"
+              },
+              "promo": null
+            },
+            "children": [
+              {
+                "visibility": {
+                  "path_id": 10864,
+                  "fc_id": 1820,
+                  "sa_id": 19224,
+                  "supply_chain_ecs": null
+                },
+                "id": "40353640",
+                "external_entity": null,
+                "inv_info": {
+                  "skus": [
+                    {
+                      "id": 40353640,
+                      "qty": 1,
+                      "fc_id": 1820
+                    }
+                  ]
+                },
+                "desc": "Strawberry Burst Dotted Condoms",
+                "pack_desc": "",
+                "w": "3 pcs",
+                "additional_info": {
+                  "key_highlights": [],
+                  "assurance_widget": []
+                },
+                "absolute_url": "/pd/40353640/unfold-strawberry-burst-dotted-condoms-3-pcs/",
+                "usp": "",
+                "cart_count": 0,
+                "aplus_url": null,
+                "images": [
+                  {
+                    "s": "https://www.bbassets.com/media/uploads/p/s/40353640_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "m": "https://www.bbassets.com/media/uploads/p/m/40353640_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "l": "https://www.bbassets.com/media/uploads/p/l/40353640_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "xl": "https://www.bbassets.com/media/uploads/p/xl/40353640_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353640_1-unfold-strawberry-burst-dotted-condoms.jpg"
+                  },
+                  {
+                    "s": "https://www.bbassets.com/media/uploads/p/s/40353640-2_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "m": "https://www.bbassets.com/media/uploads/p/m/40353640-2_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "l": "https://www.bbassets.com/media/uploads/p/l/40353640-2_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "xl": "https://www.bbassets.com/media/uploads/p/xl/40353640-2_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353640-2_1-unfold-strawberry-burst-dotted-condoms.jpg"
+                  },
+                  {
+                    "s": "https://www.bbassets.com/media/uploads/p/s/40353640-3_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "m": "https://www.bbassets.com/media/uploads/p/m/40353640-3_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "l": "https://www.bbassets.com/media/uploads/p/l/40353640-3_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "xl": "https://www.bbassets.com/media/uploads/p/xl/40353640-3_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353640-3_1-unfold-strawberry-burst-dotted-condoms.jpg"
+                  },
+                  {
+                    "s": "https://www.bbassets.com/media/uploads/p/s/40353640-4_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "m": "https://www.bbassets.com/media/uploads/p/m/40353640-4_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "l": "https://www.bbassets.com/media/uploads/p/l/40353640-4_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "xl": "https://www.bbassets.com/media/uploads/p/xl/40353640-4_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353640-4_1-unfold-strawberry-burst-dotted-condoms.jpg"
+                  },
+                  {
+                    "s": "https://www.bbassets.com/media/uploads/p/s/40353640-5_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "m": "https://www.bbassets.com/media/uploads/p/m/40353640-5_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "l": "https://www.bbassets.com/media/uploads/p/l/40353640-5_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "xl": "https://www.bbassets.com/media/uploads/p/xl/40353640-5_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353640-5_1-unfold-strawberry-burst-dotted-condoms.jpg"
+                  },
+                  {
+                    "s": "https://www.bbassets.com/media/uploads/p/s/40353640-6_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "m": "https://www.bbassets.com/media/uploads/p/m/40353640-6_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "l": "https://www.bbassets.com/media/uploads/p/l/40353640-6_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "xl": "https://www.bbassets.com/media/uploads/p/xl/40353640-6_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353640-6_1-unfold-strawberry-burst-dotted-condoms.jpg"
+                  },
+                  {
+                    "s": "https://www.bbassets.com/media/uploads/p/s/40353640-7_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "m": "https://www.bbassets.com/media/uploads/p/m/40353640-7_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "l": "https://www.bbassets.com/media/uploads/p/l/40353640-7_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "xl": "https://www.bbassets.com/media/uploads/p/xl/40353640-7_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353640-7_1-unfold-strawberry-burst-dotted-condoms.jpg"
+                  },
+                  {
+                    "s": "https://www.bbassets.com/media/uploads/p/s/40353640-8_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "m": "https://www.bbassets.com/media/uploads/p/m/40353640-8_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "l": "https://www.bbassets.com/media/uploads/p/l/40353640-8_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "xl": "https://www.bbassets.com/media/uploads/p/xl/40353640-8_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353640-8_1-unfold-strawberry-burst-dotted-condoms.jpg"
+                  },
+                  {
+                    "s": "https://www.bbassets.com/media/uploads/p/s/40353640-9_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "m": "https://www.bbassets.com/media/uploads/p/m/40353640-9_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "l": "https://www.bbassets.com/media/uploads/p/l/40353640-9_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "xl": "https://www.bbassets.com/media/uploads/p/xl/40353640-9_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                    "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353640-9_1-unfold-strawberry-burst-dotted-condoms.jpg"
+                  }
+                ],
+                "variable_weight": null,
+                "brand": {
+                  "name": "Unfold",
+                  "slug": "unfold",
+                  "url": "/pb/unfold/"
+                },
+                "category": {
+                  "tlc_name": "Beauty & Hygiene",
+                  "tlc_slug": "beauty-hygiene",
+                  "llc_name": "Condoms",
+                  "llc_slug": "type=pc&slug=condoms",
+                  "llc_id": 2105
+                },
+                "additional_attr": {
+                  "bby_lod": null,
+                  "info": []
+                },
+                "tabs": [
+                  {
+                    "content": "<style type=\"text/css\"> @import url(\"https://www.bbassets.com/static/froala_style_v2.min.css\"); </style>\n        <div style=\"font-family: 'ProximaNova-Regular';font-size:13px;line-height: 18px;color:8f8f8f;\">\n            <p>UNFOLD is rooted in the belief that sexual intimacy is a\nvoyage of discovery, where each touch and embrace gently unveils vulnerability,\nfostering a deep connection between partners. Amid the waves of passion and\npleasure, UNFOLD condoms provide trust and safety for your most cherished\nmoments.</p>\n<p>Crafted from natural rubber latex, these transparent,\nlubricated condoms are infused with a delightful strawberry flavour to elevate\nthe experience. Designed with over 500 stimulating dots for enhanced pleasure,\nthey feature a teat-ended, straight-walled shape with a nominal width of 53 ±\n2mm and a minimum length of 180mm. As a mechanical contraceptive intended for\nsingle use, they offer reliable protection, though not absolute, against\npregnancy, HIV, or other sexually transmitted infections. For detailed guidance,\nconsult the leaflet included in the pack. Store in a cool, dry place, away from\nheat and direct sunlight, and keep out of reach of children. Rigorously tested,\nUNFOLD ensures quality and confidence.</p>\n<p>UNFOLD invites you to immerse in intimacy, blending trust,\nsafety, and sensory delight to strengthen your bond.</p>\n\n        </div>",
+                    "title": "About the Product"
+                  },
+                  {
+                    "content": "<style type=\"text/css\"> @import url(\"https://www.bbassets.com/static/froala_style_v2.min.css\"); </style>\n        <div style=\"font-family: 'ProximaNova-Regular';font-size:13px;line-height: 18px;color:8f8f8f;\">\n            <p>EAN Code: 40353640  </p><br><p>Manufactured By: Cipla Health Ltd Cupid Limited, A-68, MIDC\n(Malegaon), Sinnar, Nashik-422113, Maharashtra, India</p>\n<p>Marketed By Cipla Health Limited, FOFB-11, B-Wing, 4th\nFloor, Art Guild House, Phoenix Market city, L.B.S. Marg, Kurla (West), Mumbai\n- 400070, Maharashtra</p>\n<p>&nbsp;<br></p><br><p> Country of Origin: India </p><br><p> Best Before 04-11-2028.</p><p>Disclaimer: The expiry date shown here is for indicative purposes only. Please refer to the information provided on the product package received at delivery for the actual expiry date. </p><p> For Queries/Feedback/Complaints, Contact our customer care executive at 1860 123 1000 | Address: Innovative Retail Concepts Private Limited, Ranka Junction 4th Floor, Tin Factory Bus Stop. KR Puram, Bangalore-560016, Email: customerservice@bigbasket.com</p>\n        </div>",
+                    "title": "Other Product Info"
+                  }
+                ],
+                "tags": [
+                  {
+                    "header": "NUMBER OF PIECES",
+                    "values": [
+                      {
+                        "display_name": "3 pcs",
+                        "dest_type": "product_list",
+                        "dest_slug": "type=tag&slug=number-of-pieces--3-pcs",
+                        "url": "/ts/4531/number-of-pieces/3-pcs"
+                      },
+                      {
+                        "display_name": "10-pcs",
+                        "dest_type": "product_list",
+                        "dest_slug": "type=tag&slug=number-of-pieces_1--10-pcs",
+                        "url": "/ts/13575/number-of-pieces_1/10-pcs"
+                      }
+                    ]
+                  },
+                  {
+                    "header": "OCCASION",
+                    "values": [
+                      {
+                        "display_name": "Valentine",
+                        "dest_type": "product_list",
+                        "dest_slug": "type=tag&slug=occasion--valentine",
+                        "url": "/ts/5126/occasion/valentine"
+                      }
+                    ]
+                  },
+                  {
+                    "header": "NON MILK",
+                    "values": [
+                      {
+                        "display_name": "Non Milk",
+                        "dest_type": "product_list",
+                        "dest_slug": "type=tag&slug=non-milk--non-milk",
+                        "url": "/ts/19513/non-milk/non-milk"
+                      }
+                    ]
+                  },
+                  {
+                    "header": "PHARMA STORE",
+                    "values": [
+                      {
+                        "display_name": "Sexual Wellness",
+                        "dest_type": "product_list",
+                        "dest_slug": "type=tag&slug=pharma-store--sexual-wellness",
+                        "url": "/ts/17824/pharma-store/sexual-wellness"
+                      }
+                    ]
+                  },
+                  {
+                    "header": "COUNTRY OF ORIGIN",
+                    "values": [
+                      {
+                        "display_name": "India",
+                        "dest_type": "product_list",
+                        "dest_slug": "type=tag&slug=country-of-origin--india",
+                        "url": "/ts/173/country-of-origin/india"
+                      }
+                    ]
+                  },
+                  {
+                    "header": "FLAVOUR",
+                    "values": [
+                      {
+                        "display_name": "Strawberry",
+                        "dest_type": "product_list",
+                        "dest_slug": "type=tag&slug=flavour_1--strawberry_1",
+                        "url": "/ts/8738/flavour_1/strawberry_1"
+                      }
+                    ]
+                  }
+                ],
+                "combo": null,
+                "breadcrumb": [
+                  {
+                    "id": 445,
+                    "name": "beauty & hygiene",
+                    "slug": "beauty-hygiene",
+                    "type": "pc",
+                    "url": "/cl/beauty-hygiene/"
+                  },
+                  {
+                    "id": 1522,
+                    "name": "sexual wellness",
+                    "slug": "sexual-wellness",
+                    "type": "pc",
+                    "url": "/pc/beauty-hygiene/sexual-wellness/"
+                  },
+                  {
+                    "id": 2105,
+                    "name": "condoms",
+                    "slug": "condoms",
+                    "type": "pc",
+                    "url": "/pc/beauty-hygiene/sexual-wellness/condoms/"
+                  }
+                ],
+                "rating_info": {
+                  "avg_rating": "4",
+                  "rating_count": 21,
+                  "review_count": 0,
+                  "sku_id": 40353641
+                },
+                "availability": {
+                  "avail_status": "001",
+                  "short_eta": null,
+                  "medium_eta": null,
+                  "long_eta": null,
+                  "label": null,
+                  "display_mrp": true,
+                  "display_sp": true,
+                  "not_for_sale": false,
+                  "button": "Add",
+                  "show_express": null
+                },
+                "is_tobacco": false,
+                "pricing": {
+                  "offer": {},
+                  "discount": {
+                    "mrp": "30",
+                    "d_text": "15% OFF",
+                    "d_avail": "true",
+                    "prim_price": {
+                      "sp": "25.5",
+                      "icon": {
+                        "base_url": null,
+                        "image": null,
+                        "format": null
+                      },
+                      "desc": "",
+                      "base_price": "8.5",
+                      "base_unit": "pc"
+                    },
+                    "sec_price": {
+                      "sp": null,
+                      "icon": null,
+                      "desc": null,
+                      "background": null
+                    },
+                    "offer_entry_text": "",
+                    "offer_available": "false"
+                  },
+                  "promo": null
+                }
+              }
+            ]
+          },
+          {
+            "visibility": {
+              "path_id": 10864,
+              "fc_id": 1820,
+              "sa_id": 19224,
+              "supply_chain_ecs": null
+            },
+            "id": "40353640",
+            "external_entity": null,
+            "inv_info": {
+              "skus": [
+                {
+                  "id": 40353640,
+                  "qty": 1,
+                  "fc_id": 1820
+                }
+              ]
+            },
+            "desc": "Strawberry Burst Dotted Condoms",
+            "pack_desc": "",
+            "w": "3 pcs",
+            "additional_info": {
+              "key_highlights": [],
+              "assurance_widget": []
+            },
+            "absolute_url": "/pd/40353640/unfold-strawberry-burst-dotted-condoms-3-pcs/",
+            "usp": "",
+            "cart_count": 0,
+            "aplus_url": null,
+            "images": [
+              {
+                "s": "https://www.bbassets.com/media/uploads/p/s/40353640_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "m": "https://www.bbassets.com/media/uploads/p/m/40353640_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "l": "https://www.bbassets.com/media/uploads/p/l/40353640_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xl": "https://www.bbassets.com/media/uploads/p/xl/40353640_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353640_1-unfold-strawberry-burst-dotted-condoms.jpg"
+              },
+              {
+                "s": "https://www.bbassets.com/media/uploads/p/s/40353640-2_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "m": "https://www.bbassets.com/media/uploads/p/m/40353640-2_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "l": "https://www.bbassets.com/media/uploads/p/l/40353640-2_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xl": "https://www.bbassets.com/media/uploads/p/xl/40353640-2_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353640-2_1-unfold-strawberry-burst-dotted-condoms.jpg"
+              },
+              {
+                "s": "https://www.bbassets.com/media/uploads/p/s/40353640-3_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "m": "https://www.bbassets.com/media/uploads/p/m/40353640-3_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "l": "https://www.bbassets.com/media/uploads/p/l/40353640-3_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xl": "https://www.bbassets.com/media/uploads/p/xl/40353640-3_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353640-3_1-unfold-strawberry-burst-dotted-condoms.jpg"
+              },
+              {
+                "s": "https://www.bbassets.com/media/uploads/p/s/40353640-4_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "m": "https://www.bbassets.com/media/uploads/p/m/40353640-4_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "l": "https://www.bbassets.com/media/uploads/p/l/40353640-4_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xl": "https://www.bbassets.com/media/uploads/p/xl/40353640-4_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353640-4_1-unfold-strawberry-burst-dotted-condoms.jpg"
+              },
+              {
+                "s": "https://www.bbassets.com/media/uploads/p/s/40353640-5_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "m": "https://www.bbassets.com/media/uploads/p/m/40353640-5_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "l": "https://www.bbassets.com/media/uploads/p/l/40353640-5_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xl": "https://www.bbassets.com/media/uploads/p/xl/40353640-5_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353640-5_1-unfold-strawberry-burst-dotted-condoms.jpg"
+              },
+              {
+                "s": "https://www.bbassets.com/media/uploads/p/s/40353640-6_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "m": "https://www.bbassets.com/media/uploads/p/m/40353640-6_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "l": "https://www.bbassets.com/media/uploads/p/l/40353640-6_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xl": "https://www.bbassets.com/media/uploads/p/xl/40353640-6_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353640-6_1-unfold-strawberry-burst-dotted-condoms.jpg"
+              },
+              {
+                "s": "https://www.bbassets.com/media/uploads/p/s/40353640-7_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "m": "https://www.bbassets.com/media/uploads/p/m/40353640-7_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "l": "https://www.bbassets.com/media/uploads/p/l/40353640-7_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xl": "https://www.bbassets.com/media/uploads/p/xl/40353640-7_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353640-7_1-unfold-strawberry-burst-dotted-condoms.jpg"
+              },
+              {
+                "s": "https://www.bbassets.com/media/uploads/p/s/40353640-8_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "m": "https://www.bbassets.com/media/uploads/p/m/40353640-8_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "l": "https://www.bbassets.com/media/uploads/p/l/40353640-8_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xl": "https://www.bbassets.com/media/uploads/p/xl/40353640-8_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353640-8_1-unfold-strawberry-burst-dotted-condoms.jpg"
+              },
+              {
+                "s": "https://www.bbassets.com/media/uploads/p/s/40353640-9_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "m": "https://www.bbassets.com/media/uploads/p/m/40353640-9_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "l": "https://www.bbassets.com/media/uploads/p/l/40353640-9_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xl": "https://www.bbassets.com/media/uploads/p/xl/40353640-9_1-unfold-strawberry-burst-dotted-condoms.jpg",
+                "xxl": "https://www.bbassets.com/media/uploads/p/xxl/40353640-9_1-unfold-strawberry-burst-dotted-condoms.jpg"
+              }
+            ],
+            "variable_weight": null,
+            "brand": {
+              "name": "Unfold",
+              "slug": "unfold",
+              "url": "/pb/unfold/"
+            },
+            "category": {
+              "tlc_name": "Beauty & Hygiene",
+              "tlc_slug": "beauty-hygiene",
+              "llc_name": "Condoms",
+              "llc_slug": "type=pc&slug=condoms",
+              "llc_id": 2105
+            },
+            "additional_attr": {
+              "bby_lod": null,
+              "info": []
+            },
+            "tabs": [
+              {
+                "content": "<style type=\"text/css\"> @import url(\"https://www.bbassets.com/static/froala_style_v2.min.css\"); </style>\n        <div style=\"font-family: 'ProximaNova-Regular';font-size:13px;line-height: 18px;color:8f8f8f;\">\n            <p>UNFOLD is rooted in the belief that sexual intimacy is a\nvoyage of discovery, where each touch and embrace gently unveils vulnerability,\nfostering a deep connection between partners. Amid the waves of passion and\npleasure, UNFOLD condoms provide trust and safety for your most cherished\nmoments.</p>\n<p>Crafted from natural rubber latex, these transparent,\nlubricated condoms are infused with a delightful strawberry flavour to elevate\nthe experience. Designed with over 500 stimulating dots for enhanced pleasure,\nthey feature a teat-ended, straight-walled shape with a nominal width of 53 ±\n2mm and a minimum length of 180mm. As a mechanical contraceptive intended for\nsingle use, they offer reliable protection, though not absolute, against\npregnancy, HIV, or other sexually transmitted infections. For detailed guidance,\nconsult the leaflet included in the pack. Store in a cool, dry place, away from\nheat and direct sunlight, and keep out of reach of children. Rigorously tested,\nUNFOLD ensures quality and confidence.</p>\n<p>UNFOLD invites you to immerse in intimacy, blending trust,\nsafety, and sensory delight to strengthen your bond.</p>\n\n        </div>",
+                "title": "About the Product"
+              },
+              {
+                "content": "<style type=\"text/css\"> @import url(\"https://www.bbassets.com/static/froala_style_v2.min.css\"); </style>\n        <div style=\"font-family: 'ProximaNova-Regular';font-size:13px;line-height: 18px;color:8f8f8f;\">\n            <p>EAN Code: 40353640  </p><br><p>Manufactured By: Cipla Health Ltd Cupid Limited, A-68, MIDC\n(Malegaon), Sinnar, Nashik-422113, Maharashtra, India</p>\n<p>Marketed By Cipla Health Limited, FOFB-11, B-Wing, 4th\nFloor, Art Guild House, Phoenix Market city, L.B.S. Marg, Kurla (West), Mumbai\n- 400070, Maharashtra</p>\n<p>&nbsp;<br></p><br><p> Country of Origin: India </p><br><p> Best Before 04-11-2028.</p><p>Disclaimer: The expiry date shown here is for indicative purposes only. Please refer to the information provided on the product package received at delivery for the actual expiry date. </p><p> For Queries/Feedback/Complaints, Contact our customer care executive at 1860 123 1000 | Address: Innovative Retail Concepts Private Limited, Ranka Junction 4th Floor, Tin Factory Bus Stop. KR Puram, Bangalore-560016, Email: customerservice@bigbasket.com</p>\n        </div>",
+                "title": "Other Product Info"
+              }
+            ],
+            "tags": [
+              {
+                "header": "NUMBER OF PIECES",
+                "values": [
+                  {
+                    "display_name": "3 pcs",
+                    "dest_type": "product_list",
+                    "dest_slug": "type=tag&slug=number-of-pieces--3-pcs",
+                    "url": "/ts/4531/number-of-pieces/3-pcs"
+                  },
+                  {
+                    "display_name": "10-pcs",
+                    "dest_type": "product_list",
+                    "dest_slug": "type=tag&slug=number-of-pieces_1--10-pcs",
+                    "url": "/ts/13575/number-of-pieces_1/10-pcs"
+                  }
+                ]
+              },
+              {
+                "header": "OCCASION",
+                "values": [
+                  {
+                    "display_name": "Valentine",
+                    "dest_type": "product_list",
+                    "dest_slug": "type=tag&slug=occasion--valentine",
+                    "url": "/ts/5126/occasion/valentine"
+                  }
+                ]
+              },
+              {
+                "header": "NON MILK",
+                "values": [
+                  {
+                    "display_name": "Non Milk",
+                    "dest_type": "product_list",
+                    "dest_slug": "type=tag&slug=non-milk--non-milk",
+                    "url": "/ts/19513/non-milk/non-milk"
+                  }
+                ]
+              },
+              {
+                "header": "PHARMA STORE",
+                "values": [
+                  {
+                    "display_name": "Sexual Wellness",
+                    "dest_type": "product_list",
+                    "dest_slug": "type=tag&slug=pharma-store--sexual-wellness",
+                    "url": "/ts/17824/pharma-store/sexual-wellness"
+                  }
+                ]
+              },
+              {
+                "header": "COUNTRY OF ORIGIN",
+                "values": [
+                  {
+                    "display_name": "India",
+                    "dest_type": "product_list",
+                    "dest_slug": "type=tag&slug=country-of-origin--india",
+                    "url": "/ts/173/country-of-origin/india"
+                  }
+                ]
+              },
+              {
+                "header": "FLAVOUR",
+                "values": [
+                  {
+                    "display_name": "Strawberry",
+                    "dest_type": "product_list",
+                    "dest_slug": "type=tag&slug=flavour_1--strawberry_1",
+                    "url": "/ts/8738/flavour_1/strawberry_1"
+                  }
+                ]
+              }
+            ],
+            "combo": null,
+            "breadcrumb": [
+              {
+                "id": 445,
+                "name": "beauty & hygiene",
+                "slug": "beauty-hygiene",
+                "type": "pc",
+                "url": "/cl/beauty-hygiene/"
+              },
+              {
+                "id": 1522,
+                "name": "sexual wellness",
+                "slug": "sexual-wellness",
+                "type": "pc",
+                "url": "/pc/beauty-hygiene/sexual-wellness/"
+              },
+              {
+                "id": 2105,
+                "name": "condoms",
+                "slug": "condoms",
+                "type": "pc",
+                "url": "/pc/beauty-hygiene/sexual-wellness/condoms/"
+              }
+            ],
+            "rating_info": {
+              "avg_rating": "4",
+              "rating_count": 21,
+              "review_count": 0,
+              "sku_id": 40353641
+            },
+            "availability": {
+              "avail_status": "001",
+              "short_eta": null,
+              "medium_eta": null,
+              "long_eta": null,
+              "label": null,
+              "display_mrp": true,
+              "display_sp": true,
+              "not_for_sale": false,
+              "button": "Add",
+              "show_express": null
+            },
+            "is_tobacco": false,
+            "pricing": {
+              "offer": {},
+              "discount": {
+                "mrp": "30",
+                "d_text": "15% OFF",
+                "d_avail": "true",
+                "prim_price": {
+                  "sp": "25.5",
+                  "icon": {
+                    "base_url": null,
+                    "image": null,
+                    "format": null
+                  },
+                  "desc": "",
+                  "base_price": "8.5",
+                  "base_unit": "pc"
+                },
+                "sec_price": {
+                  "sp": null,
+                  "icon": null,
+                  "desc": null,
+                  "background": null
+                },
+                "offer_entry_text": "",
+                "offer_available": "false"
+              },
+              "promo": null
+            }
+          }
+        ],
+        "base_img_url": "https://www.bbassets.com/media/uploads",
+        "isMember": null,
+        "isError": false,
+        "isTobacco": false,
+        "visibility": {
+          "path_id": 10864,
+          "fc_id": 1820,
+          "sa_id": 19224,
+          "supply_chain_ecs": null
+        },
+        "external_entity": "",
+        "inv_info": {
+          "skus": [
+            {
+              "id": 40353641,
+              "qty": 1,
+              "fc_id": 1820
+            }
+          ]
+        }
+      },
+      "dySectionsData": {
+        "rnrData": {
+          "rating_stats": {
+            "parent_sku_id": 40353641,
+            "category_id": 2105,
+            "ratings_count": 23,
+            "reviews_count": 0,
+            "avg_rating": "4.0",
+            "ratings_count_1": 4,
+            "ratings_count_2": 0,
+            "ratings_count_3": 2,
+            "ratings_count_4": 2,
+            "ratings_count_5": 15,
+            "review_images_count": 0,
+            "status": 1,
+            "created_on": "2026-03-08 00:44:50",
+            "updated_on": "2026-05-17 22:13:28"
+          },
+          "feature_stats": null,
+          "top_reviews": [],
+          "image_reviews": [],
+          "reviews_total": 0,
+          "image_reviews_total": 0,
+          "images_total": 0,
+          "sorts": [
+            {
+              "sort_id": 1,
+              "display": "Most Recent",
+              "key": "submitted_on",
+              "order": "desc"
+            },
+            {
+              "sort_id": 2,
+              "display": "Most Helpful",
+              "key": "likes_count",
+              "order": "desc"
+            },
+            {
+              "sort_id": 3,
+              "display": "Positive First",
+              "key": "rating",
+              "order": "desc"
+            },
+            {
+              "sort_id": 4,
+              "display": "Negative First",
+              "key": "rating",
+              "order": "asc"
+            }
+          ]
+        },
+        "seoData": {
+          "deep_link": [
+            "android-app://com.bigbasket.mobileapp/bigbasket/product_detail/?40353641",
+            "ios-app://660683603/bigbasket/product_detail/?40353641"
+          ],
+          "related_search": "",
+          "seo_data": {
+            "meta_description": "Buy Unfold Strawberry Burst Dotted Condoms online at lowest price from bigbasket and get them delivered at your doorstep. Delivering in 10 minutes in select cities. Free delivery, cash on delivery available.",
+            "meta_keywords": "Buy Unfold Strawberry Burst Dotted Condoms online at lowest price from bigbasket and get them delivered at your doorstep. Delivering in 10 minutes in select cities. Free delivery, cash on delivery available.",
+            "seo_additional_fld2": "",
+            "seo_additional_fld1": "",
+            "page_title": "Buy Unfold Strawberry Burst Dotted Condoms Online at Best Price"
+          },
+          "httpStatus": "200",
+          "xTracker": "Root=1-6a0b8ef5-0bf0bf936963e01e4d788b4d"
+        }
+      },
+      "sectionInfo": {
+        "status": "fulfilled"
+      }
+    },
+    "visitorCookies": {
+      "_bb_aid": "MjkxMzA4NDUzMA==",
+      "_bb_cid": "1",
+      "_bb_vid": "MTI1OTU1MjY2ODcxNDE1Mzk2Ng==",
+      "_bb_nhid": 7427,
+      "_bb_dsid": 7427,
+      "_bb_dsevid": 7427,
+      "_bb_bhid": "",
+      "_bb_loid": "",
+      "csrftoken": "khZ54lbQqk1oG4wjlCn2KbzoYbIBgehkxoj9aQnIzj052oI2knZFFUiMs8T41Dyo"
+    },
+    "requestHeaders": {},
+    "shopByCatProps": null,
+    "__N_SSP": true
+  },
+  "page": "/pd/[...params]",
+  "query": {
+    "params": [
+      "40353641",
+      "unfold-strawberry-burst-dotted-condoms-10-pcs"
+    ]
+  },
+  "buildId": "jlkskp-HVa0lppNkvk7CS",
+  "assetPrefix": "https://www.bbassets.com/monsters-inc/static",
+  "isFallback": false,
+  "isExperimentalCompile": false,
+  "dynamicIds": [
+    34777,
+    43123,
+    95205,
+    37619,
+    42154,
+    17384,
+    6170,
+    72947,
+    13903,
+    46351,
+    24413,
+    12660,
+    30173,
+    29295
+  ],
+  "gssp": true,
+  "appGip": true,
+  "scriptLoader": [
+    {
+      "id": "geminiScript",
+      "strategy": "afterInteractive",
+      "dangerouslySetInnerHTML": {
+        "__html": "\nci = \"0002325\",\ngemErrList = [],\ngemp = \"index\",\nwindow.addEventListener(\"error\", function(r) {\nif (r.error) {\nvar e = {};\ntry {\ne.m = r.message,\ne.f=r.filename.replace(/(\\r\\n|\\n|\\r)/gm,\"\"),\ne.l = r.lineno,\ne.c = r.colno,\ne.s = r.error.stack,\ngemErrList.push(e)\n} catch (r) {}\n}\n});\n(function () {\nvar geminiJs = document.createElement('script');\ngeminiJs.type = 'text/javascript';\ngeminiJs.async = true;\ngeminiJs.src = ('https:' == document.location.protocol ? 'https://cdn.epsilondelta.co/static/gemGen.js' :\n'https://cdn.epsilondelta.co/static/gemGen.js');\nvar s1 = document.getElementsByTagName('script')[0];\ns1.parentNode.insertBefore(geminiJs, s1);\nwindow.gemOption = \"NextJS\";\n})();\n"
+      }
+    }
+  ]
+}

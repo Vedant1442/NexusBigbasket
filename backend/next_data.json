@@ -1,0 +1,46 @@
+{
+  "props": {
+    "pageProps": {
+      "SSRData": null,
+      "seoData": [],
+      "custPageData": [],
+      "domain": "https://www.bigbasket.com",
+      "bucket_id": 44,
+      "variation": ""
+    },
+    "visitorCookies": {
+      "_bb_aid": "MjkxMzA4NDUzMA==",
+      "_bb_cid": "1",
+      "_bb_vid": "MTI1OTU0ODE0OTYwODA1ODg2Mg==",
+      "_bb_nhid": 7427,
+      "_bb_dsid": 7427,
+      "_bb_dsevid": 7427,
+      "_bb_bhid": "",
+      "_bb_loid": "",
+      "csrftoken": "gwvl06WtzJFocCA58FK2APjEZDfu0SFslf9UQeG07pGEl4KPu73UMuIX0ufCnN9K"
+    },
+    "requestHeaders": {},
+    "shopByCatProps": null,
+    "__N_SSP": true
+  },
+  "page": "/[listing]/[[...slug]]",
+  "query": {
+    "q": "condom",
+    "listing": "ps"
+  },
+  "buildId": "jlkskp-HVa0lppNkvk7CS",
+  "assetPrefix": "https://www.bbassets.com/monsters-inc/static",
+  "isFallback": false,
+  "isExperimentalCompile": false,
+  "gssp": true,
+  "appGip": true,
+  "scriptLoader": [
+    {
+      "id": "geminiScript",
+      "strategy": "afterInteractive",
+      "dangerouslySetInnerHTML": {
+        "__html": "\nci = \"0002325\",\ngemErrList = [],\ngemp = \"index\",\nwindow.addEventListener(\"error\", function(r) {\nif (r.error) {\nvar e = {};\ntry {\ne.m = r.message,\ne.f=r.filename.replace(/(\\r\\n|\\n|\\r)/gm,\"\"),\ne.l = r.lineno,\ne.c = r.colno,\ne.s = r.error.stack,\ngemErrList.push(e)\n} catch (r) {}\n}\n});\n(function () {\nvar geminiJs = document.createElement('script');\ngeminiJs.type = 'text/javascript';\ngeminiJs.async = true;\ngeminiJs.src = ('https:' == document.location.protocol ? 'https://cdn.epsilondelta.co/static/gemGen.js' :\n'https://cdn.epsilondelta.co/static/gemGen.js');\nvar s1 = document.getElementsByTagName('script')[0];\ns1.parentNode.insertBefore(geminiJs, s1);\nwindow.gemOption = \"NextJS\";\n})();\n"
+      }
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 """
-scraper.py  — Async Blinkit hyperlocal scraper for NEXUS-V2
+scraper.py  — Async BigBasket hyperlocal scraper for NEXUS-V2
 
 Usage (via Node.js child_process.spawn):
     python scraper.py <keyword> <pincode>
@@ -18,7 +18,7 @@ import requests
 import cloudinary
 import cloudinary.uploader
 from playwright.async_api import async_playwright
-from playwright_stealth import stealth
+from playwright_stealth import Stealth
 from dotenv import load_dotenv
 
 # ---------------------------------------------------------------------------
@@ -30,7 +30,7 @@ load_dotenv(_env_path)
 # ─────────────────────────────────────────────────────────────────────────────
 # CONFIG  (pulled from .env — never hardcode secrets in source)
 # ─────────────────────────────────────────────────────────────────────────────
-DB_PATH = os.getenv("DB_PATH", "blinkit_v2.db")
+DB_PATH = os.getenv("DB_PATH", "bigbasket.db")
 
 # Resolve DB_PATH relative to this script's directory if not absolute
 if not os.path.isabs(DB_PATH):
@@ -72,7 +72,7 @@ def _upload_to_cloudinary(raw_url: str, item_name: str) -> str:
         resp.raise_for_status()
         result = cloudinary.uploader.upload(
             io.BytesIO(resp.content),
-            folder="blinkit_store",
+            folder="bigbasket_store",
             format="webp",
             overwrite=False,          # don't re-upload if already cached on CDN
         )
@@ -94,22 +94,12 @@ def _log(msg: str) -> None:
 # ─────────────────────────────────────────────────────────────────────────────
 # MAIN: Async scraper – non-blocking, safe for Node child_process.spawn
 # ─────────────────────────────────────────────────────────────────────────────
-async def live_search_and_save(keyword: str, pincode: str = "431001") -> list[dict]:
+async def live_search_and_save(keyword: str, pincode: str = "400001") -> list[dict]:
     """
-    Async version of the Blinkit hyperlocal scraper.
-
-    Flow:
-      1. Launch a visible Chromium browser via async_playwright (headless=False) to bypass bot locks for free.
-      2. Inject anti-bot fingerprint shields via playwright-stealth.
-      3. Set delivery location using the given pincode.
-      4. Search the keyword and scroll to trigger lazy-loading.
-      5. Extract product cards via vanilla JS (with resilient multi-field parsing).
-      6. Upload each product image to Cloudinary CDN before saving to SQLite.
-      7. Commit products to blinkit_v2.db, skipping duplicates gracefully.
-      8. Return the final enriched product list.
+    Async version of the BigBasket hyperlocal scraper.
     """
     _log("🚀 Running on Local Network (Zero Cost / Proxies Disabled)...")
-    _log(f"🕵️  Searching Blinkit for '{keyword}' in Pincode {pincode}...")
+    _log(f"🕵️  Searching BigBasket for '{keyword}' in Pincode {pincode}...")
 
     results = []
 
@@ -123,84 +113,84 @@ async def live_search_and_save(keyword: str, pincode: str = "431001") -> list[di
         context = await browser.new_context(**ctx_options)
         page    = await context.new_page()
         try:
-            # 🛡️ Activate your anti-bot fingerprint shields completely for free
-            await stealth(page)
+            stealth = Stealth()
+            await stealth.apply_stealth_async(page)
+            
+            # ── Step A: Navigate to Search Page ──────────
+            search_url = f"https://www.bigbasket.com/ps/?q={keyword}"
+            _log(f"Navigating to {search_url}...")
+            await page.goto(search_url, wait_until="domcontentloaded", timeout=25000)
+            
+            # Extract product URLs by waiting for product links to render
+            product_urls = []
+            try:
+                # Wait for at least one product link to appear (Client Side Render)
+                await page.wait_for_selector("a[href*='/pd/']", timeout=15000)
+                locator = page.locator("a[href*='/pd/']")
+                count = await locator.count()
+                for i in range(count):
+                    href = await locator.nth(i).get_attribute("href")
+                    if href:
+                        # Some hrefs might be absolute, some relative
+                        url = href if href.startswith("http") else f"https://www.bigbasket.com{href}"
+                        if "/pd/" in url and url not in product_urls:
+                            product_urls.append(url)
+            except Exception as e:
+                _log(f"Could not find product links on search page: {e}")
+                
+            product_urls = product_urls[:5] # Limit to top 5
+            _log(f"Found {len(product_urls)} product URLs. Deep scraping...")
 
-            # ── Step A: Navigate & Set Hyperlocal Delivery Location ──────────
-            await page.goto("https://blinkit.com/", wait_until="commit", timeout=25000)
-            await page.locator('input[placeholder="search delivery location"]').fill(pincode)
-            await page.wait_for_timeout(1500)
-
-            # force=True punches through the translucent overlay that obscures the list
-            await page.locator('div[class*="LocationSearchList__LocationDetailContainer"]').first.click(force=True)
-            await page.wait_for_timeout(2000)
-
-            # ── Step B: Open Search Bar & Submit Keyword ──────────────────────
-            await page.locator('div[class*="SearchBar__AnimationWrapper"]').click(force=True)
-            search_input = page.locator('input[class*="SearchBarContainer__Input"]')
-            await search_input.fill(keyword)
-            await search_input.press("Enter")
-            await page.wait_for_timeout(2500)
-
-            # Trigger Blinkit's lazy image loader with a small scroll
-            await page.evaluate("window.scrollTo(0, 400);")
-            await page.wait_for_timeout(1500)
-
-            # ── Step C: Resilient Vanilla JS Data Extraction ─────────────────
-            js_script = """
-            () => {
-                let items = [];
-                let xpath  = '//div[contains(@class,"categories-table")]/div/div';
-                let cards  = document.evaluate(xpath, document, null,
-                                XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-                let limit  = Math.min(cards.snapshotLength, 8);
-
-                for (let i = 0; i < limit; i++) {
-                    let card = cards.snapshotItem(i);
-                    let text = card.innerText || '';
-
-                    if (!text.includes('ADD')) continue;
-
-                    let link  = card.querySelector('a');
-                    let img   = card.querySelector('img');
-                    let lines = text.split('\\n').map(l => l.trim()).filter(l => l.length > 0);
-
-                    let name     = 'Unknown';
-                    let price    = '₹0';
-                    let quantity = '';
-                    let badge    = '';
-
-                    // Detect discount badge on first line (e.g. "18% OFF", "Super Saver")
-                    let hasBadge = lines[0] && (lines[0].includes('%') || lines[0].toLowerCase().includes('saver'));
-                    if (hasBadge) {
-                        badge    = lines[0];
-                        name     = lines[1] || 'Unknown';
-                        quantity = lines[2] || '';
-                    } else {
-                        name     = lines[0] || 'Unknown';
-                        quantity = lines[1] || '';
-                    }
-
-                    // Price is always the second-to-last line (before "ADD" button text)
-                    if (lines.length >= 2) {
-                        price = lines[lines.length - 2] || '₹0';
-                    }
-
-                    items.push({
-                        name:       name,
-                        price:      price,
-                        quantity:   quantity,
-                        badge:      badge,
-                        image:      img  ? img.src   : 'No Image Found',
-                        productUrl: link ? link.href : 'No Link',
-                    });
-                }
-                return items;
-            }
-            """
-            results = await page.evaluate(js_script)
-            _log(f"   🔍 Extracted {len(results)} raw product card(s) from page DOM.")
-
+            # ── Step B: Deep Scrape Product Pages ──────────
+            for url in product_urls:
+                _log(f"Scraping: {url}")
+                try:
+                    await page.goto(url, wait_until="commit", timeout=20000)
+                    next_data_script = await page.locator("script#__NEXT_DATA__").text_content(timeout=10000)
+                    if not next_data_script:
+                        continue
+                        
+                    next_data = json.loads(next_data_script)
+                    page_props = next_data.get("props", {}).get("pageProps", {})
+                    product_details = page_props.get("productDetails", {})
+                    if not product_details:
+                        product_details = page_props.get("SSRData", {}).get("productDetails", {})
+                        
+                    children = product_details.get("children", []) if isinstance(product_details, dict) else []
+                    if children and isinstance(children, list):
+                        product_details = children[0]
+                        
+                    if not product_details or not isinstance(product_details, dict):
+                        continue
+                        
+                    p_name = product_details.get("desc") or product_details.get("name")
+                    pricing = product_details.get("pricing", {})
+                    discount = pricing.get("discount", {}) if isinstance(pricing, dict) else {}
+                    prim_price = discount.get("prim_price", {}) if isinstance(discount, dict) else {}
+                    
+                    p_price = float(prim_price.get("sp", 0) if isinstance(prim_price, dict) else 0)
+                    if not p_price:
+                        p_price = float(product_details.get("price") or 0)
+                    
+                    p_qty = product_details.get("w") or product_details.get("weight") or ""
+                    
+                    images = product_details.get("images", [])
+                    p_image = images[0].get("s") if (images and isinstance(images, list) and isinstance(images[0], dict)) else ""
+                    if not p_image:
+                        p_image = product_details.get("image_url", "")
+                        
+                    if p_name and p_price and p_image:
+                        results.append({
+                            "name": p_name,
+                            "price": p_price,
+                            "quantity": p_qty,
+                            "image": p_image,
+                            "productUrl": url
+                        })
+                        _log(f"  + Extracted: {p_name} @ ₹{p_price}")
+                except Exception as e:
+                    _log(f"  - Failed to scrape {url}: {e}")
+            
         except Exception as e:
             _log(f"❌ Scraping engine hit a wall: {e}")
         finally:
@@ -220,7 +210,7 @@ async def live_search_and_save(keyword: str, pincode: str = "431001") -> list[di
                 image      TEXT,
                 category   TEXT,
                 quantity   TEXT,
-                source     TEXT DEFAULT 'Blinkit',
+                source     TEXT DEFAULT 'BigBasket',
                 productUrl TEXT,
                 pincode    TEXT,
                 UNIQUE(name, pincode)
@@ -231,6 +221,21 @@ async def live_search_and_save(keyword: str, pincode: str = "431001") -> list[di
             cursor.execute("ALTER TABLE products ADD COLUMN pincode TEXT")
         except sqlite3.OperationalError:
             pass  # Column already exists — perfectly fine
+            
+        try:
+            cursor.execute("ALTER TABLE products ADD COLUMN image TEXT")
+        except sqlite3.OperationalError:
+            pass  # Column already exists
+
+        try:
+            cursor.execute("ALTER TABLE products ADD COLUMN quantity TEXT")
+        except sqlite3.OperationalError:
+            pass  # Column already exists
+
+        try:
+            cursor.execute("ALTER TABLE products ADD COLUMN productUrl TEXT")
+        except sqlite3.OperationalError:
+            pass  # Column already exists
 
         saved_count = 0
         for item in results:
@@ -249,7 +254,7 @@ async def live_search_and_save(keyword: str, pincode: str = "431001") -> list[di
                         item["image"],
                         keyword,              # category = the search keyword used
                         item["quantity"],
-                        "Blinkit",
+                        "BigBasket",
                         item["productUrl"],
                         pincode,
                     ),
@@ -262,9 +267,10 @@ async def live_search_and_save(keyword: str, pincode: str = "431001") -> list[di
         conn.close()
         _log(f"\n✅ Saved {saved_count} fresh items into {DB_PATH}!")
     else:
-        _log("⚠️  No items extracted. Check connectivity or if Blinkit's layout shifted.")
+        _log("⚠️  No items extracted. Check connectivity.")
 
     return results
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────

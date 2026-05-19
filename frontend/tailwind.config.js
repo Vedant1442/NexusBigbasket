@@ -8,17 +8,17 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#0C831F', // Blinkit/Nexus Green
-          light: '#EDFAF3',
-          hover: '#096C18'
+          DEFAULT: '#84c225', // BigBasket Green
+          light: '#f4fbe9',
+          hover: '#6da31d'
         },
         secondary: {
           DEFAULT: '#F2F2F7', // Gray background
           text: '#686B78'     // Subtle text
         },
         brand: {
-          yellow: '#FCE74C', // Blinkit highlight
-          red: '#E74C3C'
+          yellow: '#ffcb05', // Highlights
+          red: '#ed1c24'     // BigBasket Red
         }
       },
       fontFamily: {

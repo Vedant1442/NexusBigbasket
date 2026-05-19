@@ -9,17 +9,17 @@
  *     fixed server now emits `streamUpdate` first then `searchResults` — both handled)
  *  2. Sends real lat/lon from useLocationStore with every WS message
  *  3. `setLocation()` so LocationModal has a single call surface
- *  4. Product buckets derived from ACTIVE_SOURCES, not hardcoded `{ blinkit: [] }`
- *  5. WS socket shared with blinkitApi via `_registerWs`
+ *  4. Product buckets derived from ACTIVE_SOURCES, not hardcoded `{ bigbasket: [] }`
+ *  5. WS socket shared with bigbasketApi via `_registerWs`
  *  6. Reconnect loop with 3 s back-off
  *  7. WS responses for Promise-based API calls (auth, cart, etc.) forwarded
- *     to blinkitApi.routeWsResponse()
+ *     to bigbasketApi.routeWsResponse()
  */
 
 import { create } from 'zustand';
 import useLocationStore from './useLocationStore';
 import { emptyProductBuckets, buildInitialServiceStatus } from '../config/activeSources';
-import { _registerWs, routeWsResponse } from '../services/blinkitApi';
+import { _registerWs, routeWsResponse } from '../services/bigbasketApi';
 import { getWsBase } from '../config/api';
 
 // ─── Singleton WebSocket ──────────────────────────────────────────────────────
@@ -42,13 +42,13 @@ function withCoords(payload = {}) {
 const useSearchStore = create((set, get) => ({
   // ── Connection state ───────────────────────────────────────────────────────
   isConnected:   false,
-  statusMessage: 'Connecting to Warp Pool…',
+  statusMessage: 'Connecting to NEXUS…',
 
   // ── Search state ───────────────────────────────────────────────────────────
   isSearching:   false,
   isLiveScanning: false,         // true while Playwright scraper is running
   scanMessage:   '',             // shown in the UI during live scan
-  products:      emptyProductBuckets(),   // { blinkit: [], zepto: [], … }
+  products:      emptyProductBuckets(),   // { bigbasket: [], … }
   serviceStatus: buildInitialServiceStatus('idle'),
   lastQuery:     '',
 
@@ -73,11 +73,11 @@ const useSearchStore = create((set, get) => ({
     const socket = new WebSocket(url);
     ws = socket;
 
-    // Share socket reference with blinkitApi so its send helpers can use it
+    // Share socket reference with bigbasketApi so its send helpers can use it
     _registerWs(socket);
 
     // Actions whose responses are consumed by Promise-based callers in
-    // blinkitApi.js rather than being written into this store.
+    // bigbasketApi.js rather than being written into this store.
     const WS_ROUTED_ACTIONS = new Set([
       'otpSent', 'authSuccess',
       'cartData', 'cartUpdated',
@@ -103,7 +103,7 @@ const useSearchStore = create((set, get) => ({
 
       const { action } = data;
 
-      // Forward one-shot responses to blinkitApi Promise resolvers
+      // Forward one-shot responses to bigbasketApi Promise resolvers
       if (WS_ROUTED_ACTIONS.has(action)) {
         routeWsResponse(action, data);
         return;
@@ -133,7 +133,7 @@ const useSearchStore = create((set, get) => ({
                 isLiveScanning: true,
                 scanMessage:    data.scanMessage || '🔍 Scanning live inventory…',
                 serviceStatus:  { ...get().serviceStatus, [data.source]: 'loading' },
-                statusMessage:  data.scanMessage || 'Scanning Blinkit live…',
+                statusMessage:  data.scanMessage || 'Scanning BigBasket live…',
               });
               break;
             }
@@ -223,7 +223,7 @@ const useSearchStore = create((set, get) => ({
       lastQuery:     query,
       products:      emptyProductBuckets(),
       serviceStatus: buildInitialServiceStatus('loading'),
-      statusMessage: isCategory ? `Loading database category for "${query}"…` : `Warping to Blinkit for "${query}"…`,
+      statusMessage: isCategory ? `Loading database category for "${query}"…` : `Warping to BigBasket for "${query}"…`,
       suggestions:   [],
     });
 

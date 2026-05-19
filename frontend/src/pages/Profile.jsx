@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Package, User, LogOut, Clock, ShoppingBag } from 'lucide-react';
 import useAuthStore from '../store/useAuthStore';
 import { useNavigate } from 'react-router-dom';
@@ -7,16 +7,14 @@ import { getApiBase } from '../config/api';
 export default function Profile() {
   const { user, openAuthModal, signOut } = useAuthStore();
   const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!user);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+    if (!user) return;
 
     const fetchProfile = async () => {
+      setLoading(true);
       try {
         const res = await fetch(`${getApiBase()}/api/auth/profile/${user.id}`);
         const data = await res.json();

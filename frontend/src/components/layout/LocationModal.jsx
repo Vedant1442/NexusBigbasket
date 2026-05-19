@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, MapPin, Navigation, Home, Briefcase, X } from 'lucide-react';
 import useLocationStore from '../../store/useLocationStore';
@@ -12,13 +12,8 @@ export default function LocationModal() {
   const timeoutRef = useRef(null);
 
   useEffect(() => {
-    if (!query.trim()) {
-      setResults([]);
-      setIsLoading(false);
-      return;
-    }
+    if (!query.trim()) return;
 
-    setIsLoading(true);
     clearTimeout(timeoutRef.current);
     
     timeoutRef.current = setTimeout(async () => {
@@ -36,10 +31,22 @@ export default function LocationModal() {
     return () => clearTimeout(timeoutRef.current);
   }, [query]);
 
+  const handleQueryChange = (e) => {
+    const val = e.target.value;
+    setQuery(val);
+    if (!val.trim()) {
+      setResults([]);
+      setIsLoading(false);
+    } else {
+      setIsLoading(true);
+    }
+  };
+
   const handleSelect = (title, full) => {
     setLocation(title, full);
     useSearchStore.getState().setLocation(full);
     setQuery('');
+    setResults([]);
   };
 
   const handleGPS = () => {
@@ -52,6 +59,7 @@ export default function LocationModal() {
       useSearchStore.getState().setLocation(full);
       setIsLoading(false);
       setQuery('');
+      setResults([]);
     }, 1000);
   };
 
@@ -91,7 +99,7 @@ export default function LocationModal() {
                   type="text"
                   placeholder="Search for your area, apartment or street"
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={handleQueryChange}
                   className="w-full h-full bg-transparent border-none outline-none text-gray-800 dark:text-gray-100 placeholder-gray-400 text-sm font-medium"
                   autoFocus
                 />

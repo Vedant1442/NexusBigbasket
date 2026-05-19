@@ -4,17 +4,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Search, RefreshCw } from 'lucide-react';
 import ProductCard from '../components/product/ProductCard';
 import useSearchStore from '../store/useSearchStore';
+import { ACTIVE_SOURCES, totalProductCount } from '../config/activeSources';
 
 
 const SOURCE_CONFIG = {
-  blinkit: {
-    label: 'Blinkit',
-    color: 'bg-[#0c831f]',
-    textColor: 'text-[#0c831f]',
-    borderColor: 'border-green-100 dark:border-green-500/10',
-    bgLight: 'bg-green-50 dark:bg-green-500/5',
-    dot: 'bg-[#0c831f]',
-    time: '8 mins',
+  bigbasket: {
+    label: 'BigBasket',
+    color: 'bg-[#f4811f]',
+    textColor: 'text-[#f4811f]',
+    borderColor: 'border-orange-100 dark:border-orange-500/10',
+    bgLight: 'bg-orange-50 dark:bg-orange-500/5',
+    dot: 'bg-[#f4811f]',
+    time: '15-30 mins',
   }
 };
 
@@ -35,7 +36,15 @@ function SkeletonCard() {
 }
 
 function SourceSection({ source, products, isLoading }) {
-  const cfg = SOURCE_CONFIG[source];
+  const cfg = SOURCE_CONFIG[source] || {
+    label: source.charAt(0).toUpperCase() + source.slice(1),
+    color: 'bg-primary',
+    textColor: 'text-primary',
+    borderColor: 'border-gray-100 dark:border-white/5',
+    bgLight: 'bg-gray-50 dark:bg-white/5',
+    dot: 'bg-primary',
+    time: 'Fast',
+  };
   const showSkeletons = isLoading && products.length === 0;
 
   if (!isLoading && products.length === 0) return null;
@@ -72,18 +81,16 @@ export default function SearchResults() {
     }
   }, [query, isConnected, search, location.state?.isCategory]);
 
-  const hasAnyResults = (products.blinkit || []).length > 0;
+  const anyResults = totalProductCount(products) > 0;
 
   if (!isConnected) {
     return (
       <div className="flex flex-col items-center justify-center pt-32 gap-4 text-center px-4">
-        <div className="w-10 h-10 border-4 border-[#0c831f] border-t-transparent rounded-full animate-spin" />
-        <h2 className="text-xl font-black text-gray-800 dark:text-gray-100">Connecting to Warp Pool...</h2>
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <h2 className="text-xl font-black text-gray-800 dark:text-gray-100">Connecting to NEXUS...</h2>
       </div>
     );
   }
-
-
 
   return (
     <div className="w-full pb-16">
@@ -93,7 +100,9 @@ export default function SearchResults() {
           <span className="text-gray-400 dark:text-gray-500 text-sm font-medium">Results for</span>
         </div>
         <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">"{query}"</h1>
-        <p className="text-gray-400 dark:text-gray-500 text-sm font-medium mt-1">{isSearching ? statusMessage : `${(products.blinkit || []).length} items found`}</p>
+        <p className="text-gray-400 dark:text-gray-500 text-sm font-medium mt-1">
+          {isSearching ? statusMessage : `${totalProductCount(products)} items found`}
+        </p>
       </div>
 
       <AnimatePresence mode="wait">
@@ -105,19 +114,23 @@ export default function SearchResults() {
               exit={{ opacity: 0, height: 0 }}
               className="mb-6 overflow-hidden"
             >
-              <div className="px-4 py-3 bg-[#0c831f]/10 dark:bg-[#0c831f]/20 border border-[#0c831f]/20 rounded-xl flex items-center gap-3">
-                <RefreshCw className="w-5 h-5 text-[#0c831f] animate-spin" />
-                <p className="text-sm font-bold text-[#0c831f] tracking-wide">{scanMessage || 'Scanning live inventory...'}</p>
+              <div className="px-4 py-3 bg-primary/10 dark:bg-primary/20 border border-primary/20 rounded-xl flex items-center gap-3">
+                <RefreshCw className="w-5 h-5 text-primary animate-spin" />
+                <p className="text-sm font-bold text-primary tracking-wide">{scanMessage || 'Scanning live inventory...'}</p>
               </div>
             </motion.div>
           )}
           
-          <SourceSection
-            source="blinkit"
-            products={products.blinkit || []}
-            isLoading={isSearching}
-          />
-          {!isSearching && !hasAnyResults && (
+          {ACTIVE_SOURCES.map(source => (
+            <SourceSection
+              key={source}
+              source={source}
+              products={products[source] || []}
+              isLoading={isSearching}
+            />
+          ))}
+
+          {!isSearching && !anyResults && (
             <div className="flex flex-col items-center justify-center pt-16 gap-4 text-center">
               <div className="text-5xl">🔍</div>
               <h2 className="text-xl font-black text-gray-800 dark:text-white">No results found</h2>

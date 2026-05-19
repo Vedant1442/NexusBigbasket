@@ -3,9 +3,8 @@ import { persist } from 'zustand/middleware';
 import { getApiBase } from '../config/api';
 
 // Cross-tab synchronization via BroadcastChannel
-let channel = null;
 try {
-  channel = new BroadcastChannel('nexus_group_cart');
+  new BroadcastChannel('nexus_group_cart');
 } catch {
   console.warn('BroadcastChannel not supported');
 }

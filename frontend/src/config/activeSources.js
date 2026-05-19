@@ -8,17 +8,14 @@
  *   • tab rendering in SearchResults
  *   • status messages
  *
- * Valid source ids: 'blinkit' | 'zepto' | 'instamart' | 'bigbasket'
+ * Valid source ids: 'bigbasket' | 'zepto' | 'instamart' | 'bigbasket'
  */
 
-export const ACTIVE_SOURCES = ['blinkit'];
+export const ACTIVE_SOURCES = ['bigbasket'];
 
 // ─── Display helpers ──────────────────────────────────────────────────────────
 
 const DISPLAY_NAMES = {
-  blinkit:   'Blinkit',
-  zepto:     'Zepto',
-  instamart: 'Instamart',
   bigbasket: 'BigBasket',
 };
 
@@ -30,7 +27,7 @@ export function displayName(sourceId) {
 
 /**
  * Returns an empty product-list object keyed by every active source.
- * e.g. { blinkit: [] }
+ * e.g. { bigbasket: [] }
  */
 export function emptyProductBuckets() {
   return Object.fromEntries(ACTIVE_SOURCES.map((s) => [s, []]));
@@ -48,7 +45,6 @@ export function buildInitialServiceStatus(value = 'idle') {
 
 /**
  * Human-readable status shown while a search is starting.
- * "Searching Blinkit…" or "Searching Blinkit, Zepto…"
  */
 export function searchStartingMessage() {
   if (ACTIVE_SOURCES.length === 1) {
