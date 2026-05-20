@@ -13,11 +13,12 @@
     "mongoose": "^9.6.2",
     "morgan": "^1.10.0",
     "playwright": "^1.60.0",
-    "playwright-stealth": "^0.0.1",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "ws": "^8.17.0"
   },
   "scripts": {
     "start": "node server.js",
-    "install-chrome": "npx playwright install chromium"
+    "install-chrome": "npx playwright install --with-deps chromium"
   }
 }

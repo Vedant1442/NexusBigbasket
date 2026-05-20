@@ -1,11 +1,13 @@
-const { chromium } = require('playwright');
-const path = require('path');
+const { chromium } = require('playwright-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const cloudinary = require('cloudinary').v2;
-const axios = require('axios');
 const db = require('../config/sqlite');
 const crypto = require('crypto');
 
-// Cloudinary config (matches scraper.py)
+// Use stealth plugin with playwright-extra
+chromium.use(StealthPlugin());
+
+// Cloudinary config
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -19,14 +21,17 @@ let browser = null;
  */
 async function getBrowser() {
   if (!browser) {
-    // Default to headless: false for local reliability, can be overridden by env
-    const isHeadless = process.env.HEADLESS === 'true';
+    // Auto-detect production environment or respect explicit HEADLESS env var
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
+    const isHeadless = process.env.HEADLESS === 'true' || isProduction;
+    
     console.log(`[Scraper] 🚀 Launching persistent Chromium (headless: ${isHeadless})...`);
     browser = await chromium.launch({
       headless: isHeadless,
       args: [
         '--no-sandbox', 
         '--disable-dev-shm-usage',
+        '--disable-gpu', 
         '--disable-blink-features=AutomationControlled'
       ]
     });
@@ -43,12 +48,14 @@ async function scrapeBigBasket(keyword, pincode, onResults) {
 
   const browser = await getBrowser();
   
-  // Create a fresh context for each search to avoid cookie/cache leaks
+  // Create a fresh context
   const context = await browser.newContext({
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
     viewport: { width: 1920, height: 1080 }
   });
 
+  const page = await context.newPage();
+  
   await context.addCookies([{
     name: '_bb_pin_code',
     value: String(pincode),
@@ -61,9 +68,7 @@ async function scrapeBigBasket(keyword, pincode, onResults) {
     path: '/'
   }]);
 
-  const page = await context.newPage();
-
-  // Block heavy assets
+  // Block heavy assets to speed up scraping
   await page.route('**/*', (route) => {
     const type = route.request().resourceType();
     if (['image', 'stylesheet', 'font', 'media'].includes(type)) {
@@ -82,7 +87,6 @@ async function scrapeBigBasket(keyword, pincode, onResults) {
     // Catch generic search AND brand-specific product listings
     if ((url.includes('listing-svc/v2/products') || url.includes('listing-svc/v2/brand')) && 
         ['fetch', 'xhr'].includes(response.request().resourceType())) {
-      console.log(`[Scraper] 🎯 Intercepted API URL: ${url}`);
       try {
         const data = await response.json();
         if (data && data.tabs) {
@@ -101,8 +105,8 @@ async function scrapeBigBasket(keyword, pincode, onResults) {
     // Navigate and wait for network idle to ensure JS has triggered API calls
     await page.goto(searchUrl, { waitUntil: 'networkidle', timeout: 25000 });
 
-    // Poll for intercepted data (usually very fast)
-    for (let i = 0; i < 40; i++) { // Increased polling for stability
+    // Poll for intercepted data
+    for (let i = 0; i < 40; i++) {
       if (interceptedData) break;
       await new Promise(r => setTimeout(r, 250));
     }
@@ -119,7 +123,6 @@ async function scrapeBigBasket(keyword, pincode, onResults) {
         const urlSuffix = p.absolute_url || '';
         const productUrl = urlSuffix ? new URL(urlSuffix, 'https://www.bigbasket.com').href : '';
         
-        // Generate stable ID
         const id = crypto.createHash('md5').update(productUrl || (name + qty)).digest('hex').substring(0, 12);
 
         return {
@@ -133,10 +136,8 @@ async function scrapeBigBasket(keyword, pincode, onResults) {
         };
       }).filter(p => p.name && p.price && p.image);
 
-      // ─── FAST PATH: Return results immediately ───────────────────────────
       onResults(results);
 
-      // ─── SLOW PATH: Background Image Uploads & DB Save ───────────────────
       backgroundTasks(results, keyword, pincode).catch(err => {
         console.error('[Scraper] Background task error:', err.message);
       });
@@ -150,20 +151,13 @@ async function scrapeBigBasket(keyword, pincode, onResults) {
     console.error(`[Scraper] ❌ Error: ${err.message}`);
     onResults([]);
   } finally {
-    // Close context to free memory, but keep browser instance!
     await context.close().catch(() => {});
   }
 }
 
-/**
- * Handles image uploads and DB persistence in the background.
- */
 async function backgroundTasks(products, keyword, pincode) {
-  console.log(`[Scraper] ⚡ Backgrounding image uploads for ${products.length} items...`);
-  
   const updatedProducts = await Promise.all(products.map(async (item) => {
     try {
-        // Upload to Cloudinary if not already there
         if (item.image && !item.image.includes('cloudinary.com')) {
             const uploadRes = await cloudinary.uploader.upload(item.image, {
                 folder: 'bigbasket_store',
@@ -172,13 +166,10 @@ async function backgroundTasks(products, keyword, pincode) {
             });
             item.image = uploadRes.secure_url;
         }
-    } catch (e) {
-        // Keep original if upload fails
-    }
+    } catch (e) {}
     return item;
   }));
 
-  // Save to SQLite
   if (db) {
     const insert = db.prepare(`
         INSERT OR REPLACE INTO products (id, name, price, image, category, quantity, source, productUrl, pincode)
