@@ -78,7 +78,7 @@ async def live_search_and_save(keyword: str, pincode: str = "400001") -> list[di
 
     async with async_playwright() as p:
         launch_args = ["--no-sandbox", "--disable-dev-shm-usage"]
-        browser = await p.chromium.launch(headless=False, args=launch_args)
+        browser = await p.chromium.launch(headless=True, args=launch_args)
 
         ctx_options = {"user_agent": HEADERS["User-Agent"]}
         context = await browser.new_context(**ctx_options)
