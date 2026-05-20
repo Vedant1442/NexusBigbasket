@@ -66,6 +66,7 @@ export default function Navbar() {
               <input
                 id="main-search-input"
                 type="text"
+                autoComplete="off"
                 placeholder='Search "milk", "chips", "eggs"...'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

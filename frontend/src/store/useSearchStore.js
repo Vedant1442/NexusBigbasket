@@ -51,6 +51,8 @@ const useSearchStore = create((set, get) => ({
   products:      emptyProductBuckets(),   // { bigbasket: [], … }
   serviceStatus: buildInitialServiceStatus('idle'),
   lastQuery:     '',
+  offset:        0,
+  hasMore:       true,
 
   // ── Home content ───────────────────────────────────────────────────────────
   categories:       [],
@@ -142,7 +144,9 @@ const useSearchStore = create((set, get) => ({
             set((state) => ({
               products: {
                 ...state.products,
-                [data.source]: data.products,
+                [data.source]: data.append 
+                  ? [...(state.products[data.source] || []), ...data.products]
+                  : data.products,
               },
               isLiveScanning: false,
               scanMessage:    '',
@@ -160,6 +164,7 @@ const useSearchStore = create((set, get) => ({
           set({
             isSearching:   false,
             statusMessage: data.total != null ? `${data.total} results` : 'Done',
+            hasMore: data.total >= 40,
           });
           break;
 
@@ -212,22 +217,37 @@ const useSearchStore = create((set, get) => ({
   },
 
   // ─────────────────────────────────────────────────────────────────────────
-  // search(query, isCategory)
+  // search(query, isCategory, offset)
   // Sends a search request over WS, attaching current lat/lon and category flag.
   // ─────────────────────────────────────────────────────────────────────────
-  search: (query, isCategory = false) => {
+  search: (query, isCategory = false, offset = 0) => {
     if (!query?.trim() || !ws || ws.readyState !== WebSocket.OPEN) return;
 
-    set({
-      isSearching:   true,
-      lastQuery:     query,
-      products:      emptyProductBuckets(),
-      serviceStatus: buildInitialServiceStatus('loading'),
-      statusMessage: isCategory ? `Loading database category for "${query}"…` : `Warping to BigBasket for "${query}"…`,
-      suggestions:   [],
-    });
+    if (offset === 0) {
+      set({
+        isSearching:   true,
+        lastQuery:     query,
+        products:      emptyProductBuckets(),
+        serviceStatus: buildInitialServiceStatus('loading'),
+        statusMessage: isCategory ? `Loading database category for "${query}"…` : `Warping to BigBasket for "${query}"…`,
+        suggestions:   [],
+        offset: 0,
+        hasMore: true,
+      });
+    } else {
+      set({ 
+        isSearching: true,
+        offset: offset
+      });
+    }
 
-    ws.send(JSON.stringify(withCoords({ action: 'search', searchTerm: query, isCategory })));
+    ws.send(JSON.stringify(withCoords({ 
+      action: 'search', 
+      searchTerm: query, 
+      isCategory,
+      offset,
+      limit: 40
+    })));
   },
 
   // ─────────────────────────────────────────────────────────────────────────

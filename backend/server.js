@@ -100,18 +100,60 @@ wss.on("connection", (socket) => {
       }
 
       if (data.action === "search") {
-        const { searchTerm, lat, lon } = data;
-        console.log(`[${cid}] Real-time Search: "${searchTerm}" @ ${lat}, ${lon}`);
+        const { searchTerm, lat, lon, offset = 0, limit = 40 } = data;
+        console.log(`[${cid}] Real-time Search: "${searchTerm}" @ ${lat}, ${lon} (offset: ${offset})`);
         
         try {
-          const results = await bigbasketApi.search(searchTerm, lat, lon);
+          const searchPincode = await getPincode(lat, lon);
+          const cleanQuery = searchTerm.trim();
+          const keywords = cleanQuery.split(/\s+/).filter(k => k.length > 0);
           
-          trySend(socket, { 
-            action: "streamUpdate", 
-            source: "bigbasket", 
-            products: results.map(normalizeProduct) 
-          });
-          trySend(socket, { action: "searchResults", total: results.length });
+          let results = [];
+          if (keywords.length > 0) {
+            // Build dynamic SQLite query for multiple keywords
+            const whereClause = keywords.map(() => "(name LIKE ? OR category LIKE ?)").join(" AND ");
+            const params = [];
+            keywords.forEach(kw => {
+              params.push(`%${kw}%`, `%${kw}%`);
+            });
+            params.push(searchPincode);
+            
+            const stmt = db.prepare(`SELECT * FROM products WHERE ${whereClause} AND pincode = ? LIMIT ? OFFSET ?`);
+            results = stmt.all(...params, limit, offset);
+          }
+          
+          if (results.length > 0) {
+            console.log(`[SQLite HIT] Found ${results.length} items for "${cleanQuery}" @ ${searchPincode}`);
+            trySend(socket, { 
+              action: "streamUpdate", 
+              source: "bigbasket", 
+              products: results.map(normalizeProduct),
+              append: offset > 0
+            });
+            trySend(socket, { action: "searchResults", total: results.length, offset });
+          } else if (offset === 0) {
+            console.log(`[SQLite MISS] Spawning live scraper for "${cleanQuery}" @ ${searchPincode}`);
+            
+            trySend(socket, { 
+              action: "streamUpdate", 
+              source: "bigbasket", 
+              scanning: true,
+              scanMessage: '🔍 Scraping BigBasket live...'
+            });
+            
+            const { spawnScraper } = require('./services/scraperBridge');
+            spawnScraper(cleanQuery, searchPincode, (scrapedProducts) => {
+              trySend(socket, { 
+                action: "streamUpdate", 
+                source: "bigbasket", 
+                products: scrapedProducts.map(normalizeProduct) 
+              });
+              trySend(socket, { action: "searchResults", total: scrapedProducts.length });
+            }, (error) => {
+              console.error("Scraper Error:", error);
+              trySend(socket, { action: "error", message: "Live search failed" });
+            });
+          }
         } catch (err) {
           console.error("Search error:", err);
           trySend(socket, { action: "error", message: "Search failed" });

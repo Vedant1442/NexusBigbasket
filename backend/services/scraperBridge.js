@@ -15,8 +15,7 @@
  *     scraper process is spawned; both callbacks are invoked on completion
  */
 
-const { spawn } = require('child_process');
-const path       = require('path');
+const { scrapeBigBasket } = require('./scraper');
 
 // ─── In-memory deduplication registry ────────────────────────────────────────
 // key: `${keyword}::${pincode}` → Array of { onComplete, onError } callbacks
@@ -24,11 +23,6 @@ const _inProgress = new Map();
 
 /**
  * Spawns (or joins an in-flight) scraper process.
- *
- * @param {string}   keyword     - Search term (e.g. "coffee")
- * @param {string}   pincode     - 6-digit Indian pincode (e.g. "431001")
- * @param {Function} onComplete  - Called with (products: object[]) when done
- * @param {Function} onError     - Called with (Error) if scraper fails
  */
 function spawnScraper(keyword, pincode, onComplete, onError) {
   const key = `${keyword.toLowerCase()}::${pincode}`;
@@ -42,63 +36,24 @@ function spawnScraper(keyword, pincode, onComplete, onError) {
 
   // Register this request as in-flight with an initial callback
   _inProgress.set(key, [{ onComplete, onError }]);
-  console.log(`[ScraperBridge] 🚀 Spawning scraper: "${keyword}" @ ${pincode}`);
+  console.log(`[ScraperBridge] 🚀 Triggering Node-based scraper: "${keyword}" @ ${pincode}`);
 
-  const scriptPath = path.join(__dirname, '..', 'scraper.py');
-  const proc = spawn('python', [scriptPath, keyword, pincode], {
-    // Run from backend/ so relative .env and proxies.txt are found
-    cwd: path.join(__dirname, '..'),
-    env: { ...process.env },
-    // Separate stdout/stderr pipes so Python logs don't mix with JSON
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
-
-  let stdout = '';
-  let stderr = '';
-
-  proc.stdout.on('data', (chunk) => { stdout += chunk.toString(); });
-
-  // Pipe Python stderr → Node console (preserves emoji progress logs)
-  proc.stderr.on('data', (chunk) => {
-    stderr += chunk.toString();
-    process.stdout.write(`[scraper.py] ${chunk.toString()}`);
-  });
-
-  proc.on('close', (code) => {
+  scrapeBigBasket(keyword, pincode, (results) => {
     const callbacks = _inProgress.get(key) ?? [];
     _inProgress.delete(key);
-
-    if (code !== 0) {
-      const err = new Error(`scraper.py exited with code ${code}. Last stderr: ${stderr.slice(-300)}`);
-      console.error(`[ScraperBridge] ❌ ${err.message}`);
-      callbacks.forEach(({ onError: cb }) => cb(err));
-      return;
+    
+    if (results && results.length > 0) {
+      console.log(`[ScraperBridge] ✅ Got ${results.length} product(s) for "${keyword}" @ ${pincode}`);
+      callbacks.forEach(({ onComplete: cb }) => cb(results));
+    } else {
+      console.warn(`[ScraperBridge] ⚠️  No results returned for "${keyword}"`);
+      callbacks.forEach(({ onComplete: cb }) => cb([]));
     }
-
-    // Find the __RESULT__ line in stdout (robust against extra print lines)
-    const resultLine = stdout.split('\n').find(l => l.startsWith('__RESULT__'));
-    if (!resultLine) {
-      const err = new Error(`scraper.py produced no __RESULT__ line. stdout: ${stdout.slice(-300)}`);
-      console.error(`[ScraperBridge] ❌ ${err.message}`);
-      callbacks.forEach(({ onError: cb }) => cb(err));
-      return;
-    }
-
-    try {
-      const products = JSON.parse(resultLine.slice('__RESULT__'.length));
-      console.log(`[ScraperBridge] ✅ Got ${products.length} product(s) for "${keyword}" @ ${pincode}`);
-      callbacks.forEach(({ onComplete: cb }) => cb(products));
-    } catch (parseErr) {
-      console.error(`[ScraperBridge] ❌ JSON parse error: ${parseErr.message}`);
-      callbacks.forEach(({ onError: cb }) => cb(parseErr));
-    }
-  });
-
-  proc.on('error', (spawnErr) => {
+  }).catch(err => {
     const callbacks = _inProgress.get(key) ?? [];
     _inProgress.delete(key);
-    console.error(`[ScraperBridge] ❌ Spawn error: ${spawnErr.message}`);
-    callbacks.forEach(({ onError: cb }) => cb(spawnErr));
+    console.error(`[ScraperBridge] ❌ Scrape Error: ${err.message}`);
+    callbacks.forEach(({ onError: cb }) => cb(err));
   });
 }
 

@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Search, RefreshCw } from 'lucide-react';
+import { Zap, Search, RefreshCw, Loader2 } from 'lucide-react';
 import ProductCard from '../components/product/ProductCard';
 import useSearchStore from '../store/useSearchStore';
 import { ACTIVE_SOURCES, totalProductCount } from '../config/activeSources';
@@ -72,12 +72,37 @@ export default function SearchResults() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const query = searchParams.get('q') || '';
-  const { search, isSearching, isLiveScanning, scanMessage, statusMessage, products, isConnected } = useSearchStore();
+  const { 
+    search, 
+    isSearching, 
+    isLiveScanning, 
+    scanMessage, 
+    statusMessage, 
+    products, 
+    isConnected,
+    hasMore,
+    offset
+  } = useSearchStore();
+
+  const observer = useRef();
+  const lastElementRef = useCallback(node => {
+    if (isSearching) return;
+    if (observer.current) observer.current.disconnect();
+    
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        const isCategory = location.state?.isCategory || false;
+        search(query, isCategory, (offset || 0) + 40);
+      }
+    });
+    
+    if (node) observer.current.observe(node);
+  }, [isSearching, hasMore, query, location.state?.isCategory, offset, search]);
 
   useEffect(() => {
     if (query && isConnected) {
       const isCategory = location.state?.isCategory || false;
-      search(query, isCategory);
+      search(query, isCategory, 0);
     }
   }, [query, isConnected, search, location.state?.isCategory]);
 
@@ -101,7 +126,7 @@ export default function SearchResults() {
         </div>
         <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">"{query}"</h1>
         <p className="text-gray-400 dark:text-gray-500 text-sm font-medium mt-1">
-          {isSearching ? statusMessage : `${totalProductCount(products)} items found`}
+          {isSearching && offset === 0 ? statusMessage : `${totalProductCount(products)} items found`}
         </p>
       </div>
 
@@ -126,9 +151,19 @@ export default function SearchResults() {
               key={source}
               source={source}
               products={products[source] || []}
-              isLoading={isSearching}
+              isLoading={isSearching && (offset === 0 || !offset)}
             />
           ))}
+
+          {/* Infinite Scroll Trigger */}
+          <div ref={lastElementRef} className="h-10 w-full flex items-center justify-center mt-4 mb-8">
+            {isSearching && offset > 0 && (
+              <div className="flex items-center gap-2 text-primary font-bold">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span className="text-sm">Loading more...</span>
+              </div>
+            )}
+          </div>
 
           {!isSearching && !anyResults && (
             <div className="flex flex-col items-center justify-center pt-16 gap-4 text-center">

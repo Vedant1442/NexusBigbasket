@@ -103,7 +103,7 @@ async function getPincode(lat, lon) {
 const searchProducts = async (req, res) => {
   if (!db) return noDb(res);
   try {
-    const { q, lat, lon, pincode, isCategory, limit = 20 } = req.query;
+    const { q, lat, lon, pincode, isCategory, limit = 40 } = req.query;
     if (!q) return res.json([]);
 
     const cleanQuery = q.trim();
@@ -111,11 +111,22 @@ const searchProducts = async (req, res) => {
     const isCat = String(isCategory) === 'true';
 
     // ── Step 1: Cache Check (MongoDB) ────────────────────────────────────────
-    const query = isCat 
-      ? { category: { $regex: cleanQuery, $options: 'i' }, pincode: searchPincode }
-      : { name: { $regex: cleanQuery, $options: 'i' }, pincode: searchPincode };
+    const keywords = cleanQuery.split(/\s+/).filter(k => k.length > 0);
+    let mongoQuery;
 
-    let prods = await db.collection('products').find(query).limit(Number(limit)).toArray();
+    if (isCat) {
+      mongoQuery = { category: { $regex: cleanQuery, $options: 'i' }, pincode: searchPincode };
+    } else {
+      // For name search, match ALL keywords (AND logic)
+      mongoQuery = {
+        $and: keywords.map(kw => ({
+          name: { $regex: kw, $options: 'i' }
+        })),
+        pincode: searchPincode
+      };
+    }
+
+    let prods = await db.collection('products').find(mongoQuery).limit(Number(limit)).toArray();
 
     // ── Step 2: Cache Hit ────────────────────────────────────────────────────
     if (prods.length > 0) {
@@ -124,10 +135,6 @@ const searchProducts = async (req, res) => {
     }
 
     // ── Step 3: Cache Miss — Trigger Scraper ─────────────────────────────────
-    if (isCat) {
-       return res.json([]); // Categories don't trigger scraping
-    }
-
     console.log(`[Scraper] Fetching live results for "${cleanQuery}" @ ${searchPincode}...`);
     
     try {
