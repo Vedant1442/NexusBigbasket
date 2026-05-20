@@ -87,7 +87,19 @@ async function getPincode(lat, lon) {
     const resp = await fetch(url, {
       headers: { 'User-Agent': 'NEXUS-V2/1.0 (nexus-dev-contact@example.com)' },
     });
-    const json = await resp.json();
+    
+    const text = await resp.text();
+    if (!resp.ok) {
+      return DEFAULT;
+    }
+
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch (err) {
+      return DEFAULT;
+    }
+
     const pc   = json?.address?.postcode?.replace(/\s+/g, '') || DEFAULT;
     const result = pc.length === 6 && /^\d{6}$/.test(pc) ? pc : DEFAULT;
     _pincodeCache.set(cacheKey, result);

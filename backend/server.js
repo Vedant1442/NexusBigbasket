@@ -59,9 +59,26 @@ async function getPincode(lat, lon) {
   try {
     const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
     const resp = await fetch(url, {
-      headers: { 'User-Agent': 'NEXUS-V2/1.0 (nexus-dev-contact@example.com)' },
+      headers: { 
+        'User-Agent': 'NexusBigbasketApp/1.0 (https://github.com/Vedant/NexusBigbasket)',
+        'Accept-Language': 'en-US,en;q=0.9'
+      },
     });
-    const json = await resp.json();
+
+    const text = await resp.text();
+    if (!resp.ok) {
+      console.warn(`[pincode] Nominatim API error (${resp.status}): ${text.substring(0, 50)}...`);
+      return DEFAULT;
+    }
+
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch (err) {
+      console.warn(`[pincode] Nominatim returned non-JSON (${resp.status}): ${text.substring(0, 50)}...`);
+      return DEFAULT;
+    }
+
     const pc   = json?.address?.postcode?.replace(/\s+/g, '') || DEFAULT;
     const result = pc.length === 6 && /^\d{6}$/.test(pc) ? pc : DEFAULT;
     _pincodeCache.set(cacheKey, result);
