@@ -176,6 +176,7 @@ async function backgroundTasks(products, keyword, pincode) {
     return item;
   }));
 
+  // 1. Save to SQLite (Local Cache)
   if (db) {
     const insert = db.prepare(`
         INSERT OR REPLACE INTO products (id, name, price, image, category, quantity, source, productUrl, pincode)
@@ -190,6 +191,22 @@ async function backgroundTasks(products, keyword, pincode) {
 
     transaction(updatedProducts);
     console.log(`[Scraper] 💾 Cached ${updatedProducts.length} items to SQLite.`);
+  }
+
+  // 2. Save to MongoDB (Cloud Persistence)
+  const { connectToMongo } = require('../config/mongodb');
+  const mongo = await connectToMongo();
+  if (mongo) {
+    const collection = mongo.collection('products');
+    const ops = updatedProducts.map(p => ({
+      updateOne: {
+        filter: { id: p.id, pincode },
+        update: { $set: { ...p, category: keyword, pincode, source: 'BigBasket' } },
+        upsert: true
+      }
+    }));
+    await collection.bulkWrite(ops).catch(e => console.error("[Scraper] MongoDB BulkWrite Error:", e.message));
+    console.log(`[Scraper] ☁️ Persisted ${updatedProducts.length} items to MongoDB.`);
   }
 }
 

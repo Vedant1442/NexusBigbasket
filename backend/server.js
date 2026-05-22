@@ -133,8 +133,33 @@ wss.on("connection", (socket) => {
           const keywords = cleanQuery.split(/\s+/).filter(k => k.length > 0);
           
           let results = [];
-          if (keywords.length > 0) {
-            // Build dynamic SQLite query for multiple keywords
+
+          // ── Step 1: Cloud Cache Check (MongoDB) ─────────────────────────────
+          const { connectToMongo } = require('./config/mongodb');
+          const mongo = await connectToMongo();
+          if (mongo && keywords.length > 0) {
+            const mongoQuery = {
+              $and: keywords.map(kw => ({
+                $or: [
+                  { name: { $regex: kw, $options: 'i' } },
+                  { category: { $regex: kw, $options: 'i' } }
+                ]
+              })),
+              pincode: searchPincode
+            };
+            results = await mongo.collection('products')
+              .find(mongoQuery)
+              .skip(offset)
+              .limit(limit)
+              .toArray();
+            
+            if (results.length > 0) {
+              console.log(`[Mongo HIT] Found ${results.length} items for "${cleanQuery}" @ ${searchPincode}`);
+            }
+          }
+
+          // ── Step 2: Local Cache Check (SQLite fallback if Mongo fails or is empty) ──
+          if (results.length === 0 && keywords.length > 0) {
             const whereClause = keywords.map(() => "(name LIKE ? OR category LIKE ?)").join(" AND ");
             const params = [];
             keywords.forEach(kw => {
@@ -144,10 +169,10 @@ wss.on("connection", (socket) => {
             
             const stmt = db.prepare(`SELECT * FROM products WHERE ${whereClause} AND pincode = ? LIMIT ? OFFSET ?`);
             results = stmt.all(...params, limit, offset);
+            if (results.length > 0) console.log(`[SQLite HIT] Found ${results.length} items for "${cleanQuery}" @ ${searchPincode}`);
           }
           
           if (results.length > 0) {
-            console.log(`[SQLite HIT] Found ${results.length} items for "${cleanQuery}" @ ${searchPincode}`);
             trySend(socket, { 
               action: "streamUpdate", 
               source: "bigbasket", 
@@ -156,7 +181,7 @@ wss.on("connection", (socket) => {
             });
             trySend(socket, { action: "searchResults", total: results.length, offset });
           } else if (offset === 0) {
-            console.log(`[SQLite MISS] Spawning live scraper for "${cleanQuery}" @ ${searchPincode}`);
+            console.log(`[SQLite/Mongo MISS] Spawning live scraper for "${cleanQuery}" @ ${searchPincode}`);
             
             trySend(socket, { 
               action: "streamUpdate", 
