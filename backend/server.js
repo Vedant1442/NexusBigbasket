@@ -104,12 +104,19 @@ wss.on("connection", (socket) => {
         
         try {
           const { categories, featuredProducts } = await bigbasketApi.getHomeContent(lat, lon);
+          const searchPincode = await getPincode(lat, lon);
 
           trySend(socket, { 
             action: "homeContent", 
             categories, 
             products: featuredProducts.map(normalizeProduct) 
           });
+
+          // Proactive Pre-loading: Check and fill DB for each category
+          if (categories && categories.length > 0) {
+            checkAndPreloadCategories(categories, searchPincode, socket);
+          }
+
         } catch (err) {
           console.error("Home content fetch error:", err);
           trySend(socket, { action: "homeContent", categories: [], products: [] });
@@ -197,6 +204,33 @@ wss.on("connection", (socket) => {
 
 function trySend(socket, obj) {
   if (socket.readyState === ws.OPEN) socket.send(JSON.stringify(obj));
+}
+
+/**
+ * checkAndPreloadCategories:
+ * Proactively checks if each home category has products in the DB for the current pincode.
+ * If missing, it spawns the scraper in the background to fill the cache.
+ */
+function checkAndPreloadCategories(categories, pincode, socket) {
+  const { spawnScraper } = require('./services/scraperBridge');
+  
+  categories.forEach(cat => {
+    const catName = cat.name;
+    // Simple check: do we have ANY products for this category + pincode?
+    const stmt = db.prepare('SELECT id FROM products WHERE category = ? AND pincode = ? LIMIT 1');
+    const existing = stmt.get(catName, pincode);
+
+    if (!existing) {
+      console.log(`[Preload] ⚡ Cache MISS for category "${catName}" @ ${pincode}. Proactively scraping...`);
+      spawnScraper(catName, pincode, (results) => {
+        console.log(`[Preload] ✅ Cache FILLED for category "${catName}" @ ${pincode} (${results.length} items)`);
+      }, (err) => {
+        console.error(`[Preload] ❌ Cache FILL failed for "${catName}":`, err.message);
+      });
+    } else {
+      console.log(`[Preload] 🛡️ Cache HIT for category "${catName}" @ ${pincode}. Already loaded.`);
+    }
+  });
 }
 
 const PORT = process.env.PORT || 5000;
