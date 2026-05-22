@@ -15,7 +15,8 @@
  *     scraper process is spawned; both callbacks are invoked on completion
  */
 
-const { scrapeBigBasket } = require('./scraper');
+const { spawn } = require('child_process');
+const path = require('path');
 
 // ─── In-memory deduplication registry ────────────────────────────────────────
 // key: `${keyword}::${pincode}` → Array of { onComplete, onError } callbacks
@@ -36,23 +37,59 @@ function spawnScraper(keyword, pincode, onComplete, onError) {
 
   // Register this request as in-flight with an initial callback
   _inProgress.set(key, [{ onComplete, onError }]);
-  console.log(`[ScraperBridge] 🚀 Triggering Node-based scraper: "${keyword}" @ ${pincode}`);
+  console.log(`[ScraperBridge] 🚀 Spawning Optimized Python Scraper: "${keyword}" @ ${pincode}`);
 
-  scrapeBigBasket(keyword, pincode, (results) => {
+  const scraperPath = path.join(__dirname, '..', 'scraper.py');
+  
+  // Use 'python' or 'python3' depending on the environment
+  const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+  
+  const pythonProcess = spawn(pythonCmd, [scraperPath, keyword, pincode]);
+
+  let stdoutData = '';
+  let stderrData = '';
+
+  pythonProcess.stdout.on('data', (data) => {
+    stdoutData += data.toString();
+  });
+
+  pythonProcess.stderr.on('data', (data) => {
+    // Pipe Python logs (stderr) to Node console for debugging
+    process.stderr.write(data);
+    stderrData += data.toString();
+  });
+
+  pythonProcess.on('close', (code) => {
     const callbacks = _inProgress.get(key) ?? [];
     _inProgress.delete(key);
-    
-    if (results && results.length > 0) {
-      console.log(`[ScraperBridge] ✅ Got ${results.length} product(s) for "${keyword}" @ ${pincode}`);
-      callbacks.forEach(({ onComplete: cb }) => cb(results));
+
+    if (code !== 0) {
+      console.error(`[ScraperBridge] ❌ Python process exited with code ${code}`);
+      callbacks.forEach(({ onError: cb }) => cb(new Error(`Python process exited with code ${code}`)));
+      return;
+    }
+
+    // Extract the JSON result from stdout
+    const resultMatch = stdoutData.match(/__RESULT__(.*)/);
+    if (resultMatch) {
+      try {
+        const results = JSON.parse(resultMatch[1]);
+        console.log(`[ScraperBridge] ✅ Got ${results.length} product(s) for "${keyword}" @ ${pincode}`);
+        callbacks.forEach(({ onComplete: cb }) => cb(results));
+      } catch (err) {
+        console.error(`[ScraperBridge] ❌ Failed to parse JSON result: ${err.message}`);
+        callbacks.forEach(({ onError: cb }) => cb(err));
+      }
     } else {
-      console.warn(`[ScraperBridge] ⚠️  No results returned for "${keyword}"`);
+      console.warn(`[ScraperBridge] ⚠️  No __RESULT__ marker found in Python output`);
       callbacks.forEach(({ onComplete: cb }) => cb([]));
     }
-  }).catch(err => {
+  });
+
+  pythonProcess.on('error', (err) => {
     const callbacks = _inProgress.get(key) ?? [];
     _inProgress.delete(key);
-    console.error(`[ScraperBridge] ❌ Scrape Error: ${err.message}`);
+    console.error(`[ScraperBridge] ❌ Failed to spawn Python process: ${err.message}`);
     callbacks.forEach(({ onError: cb }) => cb(err));
   });
 }

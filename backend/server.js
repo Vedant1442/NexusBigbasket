@@ -90,6 +90,44 @@ async function getPincode(lat, lon) {
   }
 }
 
+/**
+ * calculateRelevance: Assigns a score to a product based on search query.
+ */
+const calculateRelevance = (product, query) => {
+  const name = (product.name || "").toLowerCase();
+  const category = (product.category || "").toLowerCase();
+  const keywords = query.toLowerCase().split(/\s+/).filter(k => k.length > 0);
+  
+  let score = 0;
+
+  keywords.forEach(kw => {
+    // Whole word match in name
+    const wordRegex = new RegExp(`\\b${kw}\\b`, 'i');
+    if (wordRegex.test(name)) {
+      score += 100;
+      if (name.startsWith(kw)) score += 50;
+    } else if (name.includes(kw)) {
+      score += 20;
+    }
+    
+    // Category match
+    if (category.includes(kw)) score += 40;
+  });
+
+  // Common Food vs Non-Food Heuristic
+  const foodKeywords = ["milk", "egg", "bread", "onion", "potato", "salt", "sugar", "oil", "rice", "dal", "atta", "paneer", "curd", "ghee"];
+  const nonFoodCategories = ["beauty", "hygiene", "personal care", "shampoo", "soap", "detergent", "home care", "cleaning"];
+  
+  const isFoodSearch = foodKeywords.some(fk => keywords.includes(fk));
+  const isNonFoodCategory = nonFoodCategories.some(nfc => category.includes(nfc));
+  
+  if (isFoodSearch && isNonFoodCategory) {
+    score -= 200; 
+  }
+
+  return score;
+};
+
 wss.on("connection", (socket) => {
   const cid = Math.random().toString(36).substring(7);
   console.log(`[${cid}] Warp Connected`);
@@ -163,18 +201,22 @@ wss.on("connection", (socket) => {
               })),
               pincode: searchPincode
             };
-            results = await mongo.collection('products')
+            // Fetch more than limit to allow for better ranking in memory
+            const rawResults = await mongo.collection('products')
               .find(mongoQuery)
-              .skip(offset)
-              .limit(limit)
+              .limit(200) 
               .toArray();
             
-            if (results.length > 0) {
-              console.log(`[Mongo HIT] Found ${results.length} items for "${cleanQuery}" @ ${searchPincode}`);
+            if (rawResults.length > 0) {
+              console.log(`[Mongo HIT] Found ${rawResults.length} potential items for "${cleanQuery}"`);
+              results = rawResults
+                .map(p => ({ ...p, _score: calculateRelevance(p, cleanQuery) }))
+                .sort((a, b) => b._score - a._score)
+                .slice(offset, offset + limit);
             }
           }
 
-          // ── Step 2: Local Cache Check (SQLite fallback if Mongo fails or is empty) ──
+          // ── Step 2: Local Cache Check (SQLite fallback) ──
           if (results.length === 0 && keywords.length > 0) {
             const whereClause = keywords.map(() => "(name LIKE ? OR category LIKE ?)").join(" AND ");
             const params = [];
@@ -183,9 +225,15 @@ wss.on("connection", (socket) => {
             });
             params.push(searchPincode);
             
-            const stmt = db.prepare(`SELECT * FROM products WHERE ${whereClause} AND pincode = ? LIMIT ? OFFSET ?`);
-            results = stmt.all(...params, limit, offset);
-            if (results.length > 0) console.log(`[SQLite HIT] Found ${results.length} items for "${cleanQuery}" @ ${searchPincode}`);
+            const stmt = db.prepare(`SELECT * FROM products WHERE ${whereClause} AND pincode = ? LIMIT 200`);
+            const rawResults = stmt.all(...params);
+            if (rawResults.length > 0) {
+              console.log(`[SQLite HIT] Found ${rawResults.length} potential items for "${cleanQuery}"`);
+              results = rawResults
+                .map(p => ({ ...p, _score: calculateRelevance(p, cleanQuery) }))
+                .sort((a, b) => b._score - a._score)
+                .slice(offset, offset + limit);
+            }
           }
           
           if (results.length > 0) {
@@ -208,16 +256,21 @@ wss.on("connection", (socket) => {
             
             const { spawnScraper } = require('./services/scraperBridge');
             spawnScraper(cleanQuery, searchPincode, (scrapedProducts) => {
-              // Populate in-memory cache for immediate reuse
+              // Rank scraped products before caching and sending
+              const ranked = scrapedProducts
+                .map(p => ({ ...p, _score: calculateRelevance(p, cleanQuery) }))
+                .sort((a, b) => b._score - a._score);
+
+              // Populate in-memory cache
               const searchCache = require('./lib/searchCache');
-              searchCache.set(cleanQuery, searchPincode, isCategory, scrapedProducts);
+              searchCache.set(cleanQuery, searchPincode, isCategory, ranked);
 
               trySend(socket, { 
                 action: "streamUpdate", 
                 source: "bigbasket", 
-                products: scrapedProducts.map(normalizeProduct) 
+                products: ranked.slice(0, limit).map(normalizeProduct) 
               });
-              trySend(socket, { action: "searchResults", total: scrapedProducts.length });
+              trySend(socket, { action: "searchResults", total: ranked.length });
             }, (error) => {
               console.error("Scraper Error:", error);
               trySend(socket, { action: "error", message: "Live search failed" });
