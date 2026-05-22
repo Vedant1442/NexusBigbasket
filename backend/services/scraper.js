@@ -23,6 +23,7 @@ cloudinary.config({
 
 let browser = null;
 let browserPromise = null;
+let pagePool = []; // Simple pool of warm pages
 
 /**
  * Ensures a single browser instance is running.
@@ -64,6 +65,7 @@ async function getBrowser() {
       console.log('[Scraper] ⚠️ Browser disconnected. Resetting instance...');
       browser = null;
       browserPromise = null;
+      pagePool = [];
     });
 
     return browser;
@@ -73,70 +75,71 @@ async function getBrowser() {
 }
 
 /**
- * Optimized scraper using a persistent browser and background tasks.
+ * Get a warm page from the pool or create a new one.
  */
-async function scrapeBigBasket(keyword, pincode, onResults) {
-  const startTime = Date.now();
-  console.log(`[Scraper] 🕵️  Searching for "${keyword}" @ ${pincode}`);
+async function getPage() {
+  if (pagePool.length > 0) {
+    console.log(`[Scraper] ♻️ Reusing warm page from pool...`);
+    const entry = pagePool.pop();
+    // Verify context is still usable
+    if (entry.browser === browser) return entry;
+  }
 
-  const browser = await getBrowser();
-  
-  // Create a fresh context
-  const context = await browser.newContext({
+  const b = await getBrowser();
+  const context = await b.newContext({
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
     viewport: { width: 1920, height: 1080 }
   });
 
   const page = await context.newPage();
   
-  await context.addCookies([{
-    name: '_bb_pin_code',
-    value: String(pincode),
-    domain: '.bigbasket.com',
-    path: '/'
-  }, {
-    name: '_bb_cid',
-    value: '1',
-    domain: '.bigbasket.com',
-    path: '/'
-  }]);
-
-  // Block heavy assets to speed up scraping
+  // Apply route blocking only once per page
   await page.route('**/*', (route) => {
     const type = route.request().resourceType();
-    if (['image', 'stylesheet', 'font', 'media'].includes(type)) {
+    if (['image', 'stylesheet', 'font', 'media', 'manifest', 'other'].includes(type)) {
       route.abort();
     } else {
       route.continue();
     }
   });
 
-  let results = [];
-  let interceptedData = null;
+  return { page, context, browser: b };
+}
 
-  // Intercept the API response
-  page.on('response', async (response) => {
-    const url = response.url();
-    // Catch generic search AND brand-specific product listings
-    if ((url.includes('listing-svc/v2/products') || url.includes('listing-svc/v2/brand')) && 
-        ['fetch', 'xhr'].includes(response.request().resourceType())) {
-      try {
-        const data = await response.json();
-        if (data && data.tabs) {
-          interceptedData = data;
-        } else if (data && data.products) {
-          interceptedData = { tabs: [{ product_info: { products: data.products } }] };
-        }
-      } catch (e) {}
-    }
-  });
+/**
+ * Optimized scraper using a persistent browser and page pooling.
+ */
+async function scrapeBigBasket(keyword, pincode, onResults) {
+  const startTime = Date.now();
+  console.log(`[Scraper] 🕵️ Searching for "${keyword}" @ ${pincode}`);
 
+  const { page, context } = await getPage();
+  
   try {
+    // Set cookies for current pincode
+    await context.addCookies([{
+      name: '_bb_pin_code', value: String(pincode), domain: '.bigbasket.com', path: '/'
+    }]);
+
+    let interceptedData = null;
+    const responseHandler = async (response) => {
+      const url = response.url();
+      if ((url.includes('listing-svc/v2/products') || url.includes('listing-svc/v2/brand')) && 
+          ['fetch', 'xhr'].includes(response.request().resourceType())) {
+        try {
+          const data = await response.json();
+          if (data && (data.tabs || data.products)) interceptedData = data;
+        } catch (e) {}
+      }
+    };
+
+    page.on('response', responseHandler);
+
     const encodedKeyword = encodeURIComponent(keyword);
     const searchUrl = `https://www.bigbasket.com/ps/?q=${encodedKeyword}`;
     
-    // Navigate and wait for network idle to ensure JS has triggered API calls
-    await page.goto(searchUrl, { waitUntil: 'networkidle', timeout: 25000 });
+    // Using domcontentloaded is faster than networkidle
+    await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
 
     // Poll for intercepted data
     for (let i = 0; i < 40; i++) {
@@ -144,8 +147,11 @@ async function scrapeBigBasket(keyword, pincode, onResults) {
       await new Promise(r => setTimeout(r, 250));
     }
 
-    if (interceptedData && interceptedData.tabs?.[0]) {
-      const productsList = interceptedData.tabs[0].product_info?.products || [];
+    page.off('response', responseHandler);
+
+    let results = [];
+    if (interceptedData) {
+      const productsList = interceptedData.tabs?.[0]?.product_info?.products || interceptedData.products || [];
       console.log(`[Scraper] ✅ Intercepted ${productsList.length} items in ${Date.now() - startTime}ms`);
 
       results = productsList.slice(0, 40).map(p => {
@@ -155,35 +161,28 @@ async function scrapeBigBasket(keyword, pincode, onResults) {
         const image = p.images?.[0]?.s || '';
         const urlSuffix = p.absolute_url || '';
         const productUrl = urlSuffix ? new URL(urlSuffix, 'https://www.bigbasket.com').href : '';
-        
         const id = crypto.createHash('md5').update(productUrl || (name + qty)).digest('hex').substring(0, 12);
 
-        return {
-          id,
-          name,
-          price,
-          quantity: qty,
-          image,
-          productUrl,
-          source: 'bigbasket'
-        };
+        return { id, name, price, quantity: qty, image, productUrl, source: 'bigbasket' };
       }).filter(p => p.name && p.price && p.image);
+    }
 
-      onResults(results);
-
-      backgroundTasks(results, keyword, pincode).catch(err => {
-        console.error('[Scraper] Background task error:', err.message);
-      });
-
+    onResults(results);
+    
+    // Push page back to pool for reuse
+    if (pagePool.length < 3) {
+      pagePool.push({ page, context, browser: browser });
     } else {
-      console.log(`[Scraper] ⚠️  No items found for "${keyword}"`);
-      onResults([]);
+      await context.close().catch(() => {});
+    }
+
+    if (results.length > 0) {
+      backgroundTasks(results, keyword, pincode).catch(() => {});
     }
 
   } catch (err) {
     console.error(`[Scraper] ❌ Error: ${err.message}`);
     onResults([]);
-  } finally {
     await context.close().catch(() => {});
   }
 }

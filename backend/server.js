@@ -124,7 +124,7 @@ wss.on("connection", (socket) => {
       }
 
       if (data.action === "search") {
-        const { searchTerm, lat, lon, offset = 0, limit = 40 } = data;
+        const { searchTerm, lat, lon, offset = 0, limit = 40, isCategory = false } = data;
         console.log(`[${cid}] Real-time Search: "${searchTerm}" @ ${lat}, ${lon} (offset: ${offset})`);
         
         try {
@@ -133,6 +133,22 @@ wss.on("connection", (socket) => {
           const keywords = cleanQuery.split(/\s+/).filter(k => k.length > 0);
           
           let results = [];
+
+          // ── Step 0: In-Memory Cache Check ──────────────────────────────────
+          const searchCache = require('./lib/searchCache');
+          const cached = searchCache.get(cleanQuery, searchPincode, isCategory);
+          if (cached && offset < cached.length) {
+            console.log(`[Cache HIT] Serving ${limit} items from memory for "${cleanQuery}"`);
+            results = cached.slice(offset, offset + limit);
+            trySend(socket, { 
+              action: "streamUpdate", 
+              source: "bigbasket", 
+              products: results.map(normalizeProduct),
+              append: offset > 0
+            });
+            trySend(socket, { action: "searchResults", total: cached.length, offset });
+            return;
+          }
 
           // ── Step 1: Cloud Cache Check (MongoDB) ─────────────────────────────
           const { connectToMongo } = require('./config/mongodb');
@@ -192,6 +208,10 @@ wss.on("connection", (socket) => {
             
             const { spawnScraper } = require('./services/scraperBridge');
             spawnScraper(cleanQuery, searchPincode, (scrapedProducts) => {
+              // Populate in-memory cache for immediate reuse
+              const searchCache = require('./lib/searchCache');
+              searchCache.set(cleanQuery, searchPincode, isCategory, scrapedProducts);
+
               trySend(socket, { 
                 action: "streamUpdate", 
                 source: "bigbasket", 
