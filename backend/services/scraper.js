@@ -3,6 +3,12 @@ const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const cloudinary = require('cloudinary').v2;
 const db = require('../config/sqlite');
 const crypto = require('crypto');
+const path = require('path');
+
+// Set Playwright browser path for Render native runtime
+if (process.env.RENDER === 'true') {
+  process.env.PLAYWRIGHT_BROWSERS_PATH = path.join(__dirname, '..', 'ms-playwright');
+}
 
 // Use stealth plugin with playwright-extra
 chromium.use(StealthPlugin());
