@@ -23,7 +23,18 @@ try {
   console.log(`[Install] 📥 Downloading Chromium...`);
   execSync('npx playwright install chromium', { stdio: 'inherit' });
   
-  console.log(`[Install] ✅ Browser installation successful.`);
+  // Also try to install Python dependencies if pip is available
+  try {
+    console.log(`[Install] 🐍 Installing Python dependencies...`);
+    const pipCmd = process.platform === 'win32' ? 'pip' : 'pip3';
+    execSync(`${pipCmd} install -r requirements.txt`, { stdio: 'inherit' });
+    console.log(`[Install] ✅ Python dependencies installed.`);
+  } catch (pipErr) {
+    console.warn(`[Install] ⚠️ Could not install Python dependencies via pip: ${pipErr.message}`);
+    console.warn(`[Install] ℹ️ Ensure Python and pip are installed in your environment.`);
+  }
+
+  console.log(`[Install] ✅ Installation process complete.`);
 } catch (err) {
   console.error(`[Install] ❌ Failed to install browsers: ${err.message}`);
   process.exit(1);

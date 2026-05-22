@@ -29,6 +29,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// 0. HEALTH CHECK (for Render/Vercel)
+app.get("/", (req, res) => {
+  res.status(200).send("🚀 NEXUS HYPERLOCAL ENGINE ACTIVE");
+});
+
 // 2. ROUTES
 const productRoutes = require("./routes/productRoutes");
 app.use("/api/products", productRoutes);

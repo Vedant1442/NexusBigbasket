@@ -8,20 +8,24 @@ WORKDIR /app
 # This ensures they are included in the image and accessible
 ENV PLAYWRIGHT_BROWSERS_PATH=/app/ms-playwright
 
-# Install build-essential and python3 (required for better-sqlite3 compilation)
+# Install build-essential, python3, and pip
 RUN apt-get update && apt-get install -y \
     build-essential \
     python3 \
+    python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy package files first for better caching
 COPY package*.json ./
 
 # Install dependencies
-# Note: better-sqlite3 will compile during this step
 RUN npm ci
 
-# Install only the Chromium browser inside the specified path
+# Copy requirements.txt and install Python dependencies
+COPY requirements.txt ./
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# Install only the Chromium browser
 RUN npx playwright install chromium
 
 # Copy the rest of the application code
