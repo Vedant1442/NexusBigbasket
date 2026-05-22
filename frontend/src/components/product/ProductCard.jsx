@@ -45,7 +45,7 @@ export default function ProductCard({ product }) {
   const hasMRP = product.mrp && product.mrp > product.price && product.mrp !== product.price;
 
   return (
-    <div className="w-[160px] md:w-[180px] rounded-2xl bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/5 overflow-hidden relative flex flex-col transition hover:shadow-md hover:-translate-y-0.5 duration-200 group cursor-pointer flex-shrink-0">
+    <div className="w-full rounded-2xl bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/5 overflow-hidden relative flex flex-col transition hover:shadow-md hover:-translate-y-0.5 duration-200 group cursor-pointer flex-shrink-0">
 
       {/* Discount Badge */}
       {hasDiscount && (

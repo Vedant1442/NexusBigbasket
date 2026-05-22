@@ -78,74 +78,70 @@ async def scrape_bigbasket(keyword: str, pincode: str = "400001") -> list[dict]:
     async with AsyncSession(impersonate="chrome124") as s:
         s.cookies.set("_bb_pin_code", str(pincode), domain=".bigbasket.com")
         
+        # 1. Initialize Session
         search_url = f"https://www.bigbasket.com/ps/?q={encoded_kw}"
-        _log(f"Initializing session via {search_url}...")
-        init_start = asyncio.get_event_loop().time()
-        resp = await s.get(search_url, timeout=15)
-        _log(f"   ⏱️  Session Init: {asyncio.get_event_loop().time() - init_start:.2f}s")
-        
-        if resp.status_code != 200:
-            _log(f"❌ Failed to initialize session. Status: {resp.status_code}")
-            return []
-
-        api_url = f"https://www.bigbasket.com/listing-svc/v2/products?q={encoded_kw}&type=ps&slug={encoded_kw}&page=1"
-        _log(f"Fetching API: {api_url}")
-        api_start = asyncio.get_event_loop().time()
-        api_resp = await s.get(api_url, timeout=15)
-        _log(f"   ⏱️  API Fetch: {asyncio.get_event_loop().time() - api_start:.2f}s")
-        
-        if api_resp.status_code != 200:
-            _log(f"❌ API Call Failed. Status: {api_resp.status_code}")
-            return []
-
         try:
-            data = api_resp.json()
-            products_list = data.get('tabs', [{}])[0].get('product_info', {}).get('products', [])
-            _log(f"✅ Found {len(products_list)} items.")
-            # ... (extraction logic) ...
-
-            for p in products_list[:40]:
-                name = p.get('desc') or p.get('brand', {}).get('name', 'Unknown')
-                pricing = p.get('pricing', {}).get('discount', {})
-                prim_price = pricing.get('prim_price', {})
-                price = float(prim_price.get('sp', 0))
-                qty = p.get('w', '')
-                images = p.get('images', [])
-                image = images[0].get('s') if images else ''
-                url_suffix = p.get('absolute_url', '')
-                product_url = urljoin('https://www.bigbasket.com', url_suffix) if url_suffix else ''
-                
-                # Extract actual category
-                cat_info = p.get('category', {})
-                actual_category = cat_info.get('mlc_name') or cat_info.get('tlc_name') or keyword
-                
-                if name and price and image:
-                    pid = _gen_id(product_url or (name + qty))
-                    results.append({
-                        "id": pid,
-                        "name": name,
-                        "price": price,
-                        "quantity": qty,
-                        "image": image,
-                        "productUrl": product_url,
-                        "category": actual_category
-                    })
-                    _log(f"  + Extracted: {name} ({actual_category}) @ ₹{price}")
-                    
+            await s.get(search_url, timeout=15)
         except Exception as e:
-            _log(f"❌ Error parsing JSON: {e}")
+            _log(f"⚠️ Session Init Warning: {e}")
 
-    # 4. Post-processing: Cloudinary Uploads (Concurrent)
+        # 2. Scrape multiple pages for a better buffer (up to 3 pages)
+        all_products = []
+        for page in range(1, 4):
+            api_url = f"https://www.bigbasket.com/listing-svc/v2/products?q={encoded_kw}&type=ps&slug={encoded_kw}&page={page}"
+            _log(f"   📄 Fetching Page {page}...")
+            try:
+                api_resp = await s.get(api_url, timeout=10)
+                if api_resp.status_code != 200: break
+                
+                data = api_resp.json()
+                page_products = data.get('tabs', [{}])[0].get('product_info', {}).get('products', [])
+                if not page_products: break
+                all_products.extend(page_products)
+                if len(page_products) < 20: break # Last page
+            except Exception:
+                break
+
+        _log(f"✅ Found {len(all_products)} raw items across {page} pages.")
+
+        for p in all_products:
+            # ... (extraction logic) ...
+            name = p.get('desc') or p.get('brand', {}).get('name', 'Unknown')
+            pricing = p.get('pricing', {}).get('discount', {})
+            prim_price = pricing.get('prim_price', {})
+            price = float(prim_price.get('sp', 0))
+            qty = p.get('w', '')
+            images = p.get('images', [])
+            image = images[0].get('s') if images else ''
+            url_suffix = p.get('absolute_url', '')
+            product_url = urljoin('https://www.bigbasket.com', url_suffix) if url_suffix else ''
+            cat_info = p.get('category', {})
+            actual_category = cat_info.get('mlc_name') or cat_info.get('tlc_name') or keyword
+            
+            if name and price and image:
+                pid = _gen_id(product_url or (name + qty))
+                results.append({
+                    "id": pid,
+                    "name": name,
+                    "price": price,
+                    "quantity": qty,
+                    "image": image,
+                    "productUrl": product_url,
+                    "category": actual_category
+                })
+
+    # 4. Post-processing: Cloudinary Uploads
     if results:
-        _log("⚡ Uploading images concurrently to CDN...")
+        # Cap image uploads to 60 for performance and rate-limit safety
+        process_results = results[:60]
+        _log(f"⚡ Mirroring {len(process_results)} images to CDN...")
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-            future_to_item = {executor.submit(_upload_to_cloudinary, item["image"], item["name"]): item for item in results}
+            future_to_item = {executor.submit(_upload_to_cloudinary, item["image"], item["name"]): item for item in process_results}
             for future in concurrent.futures.as_completed(future_to_item):
                 item = future_to_item[future]
-                try:
-                    item["image"] = future.result()
-                except Exception as e:
-                    _log(f"  - CDN Future failed: {e}")
+                try: item["image"] = future.result()
+                except Exception: pass
+        results = process_results
 
         # 5. Save to SQLite (Local Cache)
         try:

@@ -20,9 +20,12 @@ export function getApiBase() {
 }
 
 export function getWsBase() {
-  if (import.meta.env.VITE_WS_URL) {
-    return import.meta.env.VITE_WS_URL.replace(/\/$/, '');
+  let url = import.meta.env.VITE_WS_URL;
+  if (url) {
+    url = url.replace(/\/$/, '');
+    return url.replace(/^http/, 'ws'); // Replaces http with ws AND https with wss
   }
+  
   if (typeof window === 'undefined') return 'ws://localhost:5000';
   const { protocol, host } = window.location;
   const wsHost = (host.includes(':5173') || host.includes(':5174') || host.includes(':5175') || host.includes(':5176'))

@@ -21,7 +21,7 @@ const SOURCE_CONFIG = {
 
 function SkeletonCard() {
   return (
-    <div className="w-[160px] md:w-[180px] rounded-2xl bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/5 overflow-hidden animate-pulse flex-shrink-0">
+    <div className="w-full rounded-2xl bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/5 overflow-hidden animate-pulse">
       <div className="h-[130px] bg-gray-100 dark:bg-white/5" />
       <div className="p-3 space-y-2">
         <div className="h-3 bg-gray-100 dark:bg-white/5 rounded w-2/3" />
@@ -59,7 +59,7 @@ function SourceSection({ source, products, isLoading }) {
         </span>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
         {showSkeletons
           ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
           : products.map((p) => <ProductCard key={p.id} product={p} />)}

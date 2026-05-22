@@ -176,7 +176,7 @@ wss.on("connection", (socket) => {
           const searchCache = require('./lib/searchCache');
           const cached = searchCache.get(cleanQuery, searchPincode, isCategory);
           if (cached && offset < cached.length) {
-            console.log(`[Cache HIT] Serving ${limit} items from memory for "${cleanQuery}"`);
+            console.log(`[Cache HIT] Serving ${limit} items from memory (offset: ${offset}) for "${cleanQuery}"`);
             results = cached.slice(offset, offset + limit);
             trySend(socket, { 
               action: "streamUpdate", 
@@ -201,18 +201,19 @@ wss.on("connection", (socket) => {
               })),
               pincode: searchPincode
             };
-            // Fetch more than limit to allow for better ranking in memory
             const rawResults = await mongo.collection('products')
               .find(mongoQuery)
-              .limit(200) 
+              .limit(300) 
               .toArray();
             
             if (rawResults.length > 0) {
               console.log(`[Mongo HIT] Found ${rawResults.length} potential items for "${cleanQuery}"`);
-              results = rawResults
+              const ranked = rawResults
                 .map(p => ({ ...p, _score: calculateRelevance(p, cleanQuery) }))
-                .sort((a, b) => b._score - a._score)
-                .slice(offset, offset + limit);
+                .sort((a, b) => b._score - a._score);
+              
+              searchCache.set(cleanQuery, searchPincode, isCategory, ranked);
+              results = ranked.slice(offset, offset + limit);
             }
           }
 
@@ -225,14 +226,16 @@ wss.on("connection", (socket) => {
             });
             params.push(searchPincode);
             
-            const stmt = db.prepare(`SELECT * FROM products WHERE ${whereClause} AND pincode = ? LIMIT 200`);
+            const stmt = db.prepare(`SELECT * FROM products WHERE ${whereClause} AND pincode = ? LIMIT 300`);
             const rawResults = stmt.all(...params);
             if (rawResults.length > 0) {
               console.log(`[SQLite HIT] Found ${rawResults.length} potential items for "${cleanQuery}"`);
-              results = rawResults
+              const ranked = rawResults
                 .map(p => ({ ...p, _score: calculateRelevance(p, cleanQuery) }))
-                .sort((a, b) => b._score - a._score)
-                .slice(offset, offset + limit);
+                .sort((a, b) => b._score - a._score);
+              
+              searchCache.set(cleanQuery, searchPincode, isCategory, ranked);
+              results = ranked.slice(offset, offset + limit);
             }
           }
           
