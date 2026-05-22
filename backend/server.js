@@ -236,10 +236,10 @@ function trySend(socket, obj) {
  * Proactively checks if each home category has products in the DB for the current pincode.
  * If missing, it spawns the scraper in the background to fill the cache.
  */
-function checkAndPreloadCategories(categories, pincode, socket) {
+async function checkAndPreloadCategories(categories, pincode, socket) {
   const { spawnScraper } = require('./services/scraperBridge');
   
-  categories.forEach(cat => {
+  for (const cat of categories) {
     const catName = cat.name;
     // Simple check: do we have ANY products for this category + pincode?
     const stmt = db.prepare('SELECT id FROM products WHERE category = ? AND pincode = ? LIMIT 1');
@@ -252,10 +252,13 @@ function checkAndPreloadCategories(categories, pincode, socket) {
       }, (err) => {
         console.error(`[Preload] ❌ Cache FILL failed for "${catName}":`, err.message);
       });
+      
+      // Stagger the pre-loading to avoid slamming the CPU/RAM
+      await new Promise(r => setTimeout(r, 2000));
     } else {
       console.log(`[Preload] 🛡️ Cache HIT for category "${catName}" @ ${pincode}. Already loaded.`);
     }
-  });
+  }
 }
 
 const PORT = process.env.PORT || 5000;

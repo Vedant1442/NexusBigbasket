@@ -22,12 +22,17 @@ cloudinary.config({
 });
 
 let browser = null;
+let browserPromise = null;
 
 /**
  * Ensures a single browser instance is running.
+ * Uses a Promise lock to prevent race conditions during simultaneous initialization.
  */
 async function getBrowser() {
-  if (!browser) {
+  if (browser) return browser;
+  if (browserPromise) return browserPromise;
+
+  browserPromise = (async () => {
     // Auto-detect production environment or respect explicit HEADLESS env var
     const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
     const isHeadless = process.env.HEADLESS === 'true' || isProduction;
@@ -43,24 +48,28 @@ async function getBrowser() {
     };
 
     // HARD-CODED ABSOLUTE PATH FOR RENDER NATIVE RUNTIME
-    // This is the "Nuclear" fix to ensure Playwright never fails to find the binary.
     if (process.env.RENDER === 'true') {
-      // The browser is installed in backend/ms-playwright/chromium_headless_shell-1223/chrome-headless-shell-linux64/chrome-headless-shell
-      // On Render, the project root is usually /opt/render/project/src/
       const renderExecutablePath = path.join('/opt/render/project/src/backend/ms-playwright', 'chromium_headless_shell-1223', 'chrome-headless-shell-linux64', 'chrome-headless-shell');
       
       if (fs.existsSync(renderExecutablePath)) {
         console.log(`[Scraper] 🎯 Found Render-specific binary: ${renderExecutablePath}`);
         launchOptions.executablePath = renderExecutablePath;
-      } else {
-        console.warn(`[Scraper] ⚠️  Expected binary NOT found at ${renderExecutablePath}. Falling back to default resolution.`);
       }
     }
 
     console.log(`[Scraper] 🚀 Launching persistent Chromium (headless: ${isHeadless})...`);
     browser = await chromium.launch(launchOptions);
-  }
-  return browser;
+    
+    browser.on('disconnected', () => {
+      console.log('[Scraper] ⚠️ Browser disconnected. Resetting instance...');
+      browser = null;
+      browserPromise = null;
+    });
+
+    return browser;
+  })();
+
+  return browserPromise;
 }
 
 /**
