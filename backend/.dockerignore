@@ -1,0 +1,10 @@
+node_modules
+npm-debug.log
+.env
+.git
+.gitignore
+*.db-shm
+*.db-wal
+test_*.html
+test_*.png
+next_data*.json

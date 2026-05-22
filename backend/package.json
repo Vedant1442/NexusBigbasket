@@ -19,6 +19,6 @@
   },
   "scripts": {
     "start": "node server.js",
-    "install-chrome": "npx playwright install --with-deps chromium"
+    "install-chrome": "npx playwright install chromium"
   }
 }
