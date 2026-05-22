@@ -4,6 +4,7 @@ const cloudinary = require('cloudinary').v2;
 const db = require('../config/sqlite');
 const crypto = require('crypto');
 const path = require('path');
+const fs = require('fs');
 
 // Set Playwright browser path for Render native runtime
 if (process.env.RENDER === 'true') {
