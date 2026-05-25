@@ -107,10 +107,18 @@ export default function ProductCard({ product }) {
           </p>
         )}
 
-        {/* Quantity */}
-        {product.quantity && (
-          <div className="text-[10px] font-semibold text-gray-400 mb-2">{product.quantity}</div>
+        {/* Quantity and Sales */}
+        {(product.quantity || product.pack_desc) && (
+          <div className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 mb-1">
+            {product.pack_desc ? `${product.pack_desc} • ` : ''}{product.quantity}
+          </div>
         )}
+        {product.sales_metric && (
+          <div className="text-[9px] font-bold text-red-600 bg-red-50 dark:bg-red-500/10 px-1.5 py-0.5 rounded w-fit mb-2 line-clamp-1">
+            🔥 {product.sales_metric.replace(' SOLD', ' Sold').replace(' IN ', ' in ')}
+          </div>
+        )}
+        {!product.sales_metric && <div className="mb-2"></div>}
 
         {/* Price + Add Button */}
         <div className="mt-auto flex items-end justify-between gap-1">

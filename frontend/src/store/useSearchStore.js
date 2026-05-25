@@ -141,21 +141,25 @@ const useSearchStore = create((set, get) => ({
             }
 
             // Normal result delivery (cache hit or scraper finished)
-            set((state) => ({
-              products: {
-                ...state.products,
-                [data.source]: data.append 
-                  ? [...(state.products[data.source] || []), ...data.products]
-                  : data.products,
-              },
-              isLiveScanning: false,
-              scanMessage:    '',
-              serviceStatus: {
-                ...state.serviceStatus,
-                [data.source]: 'done',
-              },
-              statusMessage: `${data.source} results loaded`,
-            }));
+            set((state) => {
+              const appendedProducts = data.products || [];
+              return {
+                products: {
+                  ...state.products,
+                  [data.source]: data.append 
+                    ? [...(state.products[data.source] || []), ...appendedProducts]
+                    : appendedProducts,
+                },
+                isLiveScanning: false,
+                scanMessage:    '',
+                serviceStatus: {
+                  ...state.serviceStatus,
+                  [data.source]: 'done',
+                },
+                statusMessage: `${data.source} results loaded`,
+                hasMore: appendedProducts.length >= 40,
+              };
+            });
           }
           break;
 
@@ -164,7 +168,6 @@ const useSearchStore = create((set, get) => ({
           set({
             isSearching:   false,
             statusMessage: data.total != null ? `${data.total} results` : 'Done',
-            hasMore: data.total >= 40,
           });
           break;
 

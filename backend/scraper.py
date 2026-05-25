@@ -68,9 +68,9 @@ def _upload_to_cloudinary(raw_url: str, item_name: str) -> str:
         _log(f"   ⚠️  CDN Upload Failed for '{item_name}': {e}")
         return raw_url
 
-async def scrape_bigbasket(keyword: str, pincode: str = "400001") -> list[dict]:
+async def scrape_bigbasket(keyword: str, pincode: str = "400001", start_page: int = 1) -> list[dict]:
     start_time = asyncio.get_event_loop().time()
-    _log(f"🚀 Optimized Scraper: Searching '{keyword}' in Pincode {pincode}...")
+    _log(f"🚀 Optimized Scraper: Searching '{keyword}' in Pincode {pincode} from page {start_page}...")
     
     encoded_kw = quote(keyword)
     results = []
@@ -87,7 +87,7 @@ async def scrape_bigbasket(keyword: str, pincode: str = "400001") -> list[dict]:
 
         # 2. Scrape multiple pages for a better buffer (up to 3 pages)
         all_products = []
-        for page in range(1, 4):
+        for page in range(start_page, start_page + 3):
             api_url = f"https://www.bigbasket.com/listing-svc/v2/products?q={encoded_kw}&type=ps&slug={encoded_kw}&page={page}"
             _log(f"   📄 Fetching Page {page}...")
             try:
@@ -110,6 +110,9 @@ async def scrape_bigbasket(keyword: str, pincode: str = "400001") -> list[dict]:
             pricing = p.get('pricing', {}).get('discount', {})
             prim_price = pricing.get('prim_price', {})
             price = float(prim_price.get('sp', 0))
+            mrp = float(prim_price.get('mrp', price))
+            discount = float(pricing.get('d_pct', 0) if pricing.get('d_pct') else 0)
+            
             qty = p.get('w', '')
             images = p.get('images', [])
             image = images[0].get('s') if images else ''
@@ -118,13 +121,25 @@ async def scrape_bigbasket(keyword: str, pincode: str = "400001") -> list[dict]:
             cat_info = p.get('category', {})
             actual_category = cat_info.get('mlc_name') or cat_info.get('tlc_name') or keyword
             
+            sales_metric = p.get('number_of_skus_sold', '')
+            pack_desc = p.get('pack_desc', '')
+            rating_info = p.get('rating_info', {})
+            rating = float(rating_info.get('avg_rating') or 0)
+            ratingCount = int(rating_info.get('rating_count') or 0)
+            
             if name and price and image:
                 pid = _gen_id(product_url or (name + qty))
                 results.append({
                     "id": pid,
                     "name": name,
                     "price": price,
+                    "mrp": mrp,
+                    "discount": discount,
                     "quantity": qty,
+                    "pack_desc": pack_desc,
+                    "sales_metric": sales_metric,
+                    "rating": rating,
+                    "ratingCount": ratingCount,
                     "image": image,
                     "productUrl": product_url,
                     "category": actual_category
@@ -141,7 +156,7 @@ async def scrape_bigbasket(keyword: str, pincode: str = "400001") -> list[dict]:
                 item = future_to_item[future]
                 try: item["image"] = future.result()
                 except Exception: pass
-        results = process_results
+        # Keep all results, not just the ones uploaded to CDN
 
         # 5. Save to SQLite (Local Cache)
         try:
@@ -154,16 +169,21 @@ async def scrape_bigbasket(keyword: str, pincode: str = "400001") -> list[dict]:
                     id         TEXT PRIMARY KEY,
                     name       TEXT,
                     price      REAL,
+                    mrp        REAL,
+                    discount   REAL,
                     image      TEXT,
                     category   TEXT,
                     quantity   TEXT,
+                    pack_desc  TEXT,
+                    sales_metric TEXT,
+                    rating     REAL,
+                    ratingCount INTEGER,
                     source     TEXT DEFAULT 'BigBasket',
                     productUrl TEXT,
-                    pincode    TEXT,
-                    UNIQUE(name, pincode)
+                    pincode    TEXT
                 )
             """)
-            for col in ["pincode", "image", "quantity", "productUrl"]:
+            for col in ["pincode", "image", "quantity", "productUrl", "mrp", "discount", "pack_desc", "sales_metric", "rating", "ratingCount"]:
                 try: cursor.execute(f"ALTER TABLE products ADD COLUMN {col} TEXT")
                 except sqlite3.OperationalError: pass
 
@@ -172,10 +192,10 @@ async def scrape_bigbasket(keyword: str, pincode: str = "400001") -> list[dict]:
                 try:
                     cursor.execute(
                         """
-                        INSERT OR REPLACE INTO products (name, price, image, category, quantity, source, productUrl, pincode)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        INSERT OR REPLACE INTO products (id, name, price, mrp, discount, image, category, quantity, pack_desc, sales_metric, rating, ratingCount, source, productUrl, pincode)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
-                        (item["name"], item["price"], item["image"], item["category"], item["quantity"], "BigBasket", item["productUrl"], pincode),
+                        (item["id"], item["name"], item["price"], item.get("mrp", item["price"]), item.get("discount", 0), item["image"], item["category"], item["quantity"], item.get("pack_desc", ""), item.get("sales_metric", ""), item.get("rating", 0), item.get("ratingCount", 0), "BigBasket", item["productUrl"], pincode),
                     )
                     saved_count += 1
                 except Exception as e: _log(f"  - SQLite Save Failed: {e}")
@@ -198,7 +218,7 @@ async def scrape_bigbasket(keyword: str, pincode: str = "400001") -> list[dict]:
                         "source": "BigBasket"
                     }
                     collection.update_one(
-                        {"name": item["name"], "pincode": pincode},
+                        {"id": item["id"], "pincode": pincode},
                         {"$set": doc},
                         upsert=True
                     )
@@ -214,6 +234,7 @@ async def scrape_bigbasket(keyword: str, pincode: str = "400001") -> list[dict]:
 if __name__ == "__main__":
     keyword = sys.argv[1] if len(sys.argv) > 1 else "milk"
     pincode = sys.argv[2] if len(sys.argv) > 2 else "400001"
+    start_page = int(sys.argv[3]) if len(sys.argv) > 3 else 1
     
-    final_results = asyncio.run(scrape_bigbasket(keyword, pincode))
+    final_results = asyncio.run(scrape_bigbasket(keyword, pincode, start_page))
     print("__RESULT__" + json.dumps(final_results), flush=True)

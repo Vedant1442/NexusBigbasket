@@ -252,8 +252,8 @@ wss.on("connection", (socket) => {
               append: offset > 0
             });
             trySend(socket, { action: "searchResults", total: results.length, offset });
-          } else if (offset === 0) {
-            console.log(`[SQLite/Mongo MISS] Spawning live scraper for "${cleanQuery}" @ ${searchPincode}`);
+          } else {
+            console.log(`[Cache Exhausted/Miss] Spawning live scraper for "${cleanQuery}" @ ${searchPincode} (offset: ${offset})`);
             
             trySend(socket, { 
               action: "streamUpdate", 
@@ -262,23 +262,34 @@ wss.on("connection", (socket) => {
               scanMessage: '🔍 Scraping BigBasket live...'
             });
             
+            const startPage = Math.floor(offset / 20) + 1;
             const { spawnScraper } = require('./services/scraperBridge');
-            spawnScraper(cleanQuery, searchPincode, (scrapedProducts) => {
+            
+            spawnScraper(cleanQuery, searchPincode, startPage, (scrapedProducts) => {
               // Rank scraped products before caching and sending
               const ranked = scrapedProducts
                 .map(p => ({ ...p, _score: calculateRelevance(p, cleanQuery) }))
+                .filter(p => p._score > 0)
                 .sort((a, b) => b._score - a._score);
 
-              // Populate in-memory cache
+              // Populate or append to in-memory cache
               const searchCache = require('./lib/searchCache');
-              searchCache.set(cleanQuery, searchPincode, isCategory, ranked);
+              const existingCache = searchCache.get(cleanQuery, searchPincode, isCategory) || [];
+              
+              // Only append items we don't already have based on ID
+              const existingIds = new Set(existingCache.map(item => item.id));
+              const newUniqueItems = ranked.filter(item => !existingIds.has(item.id));
+              const combinedCache = [...existingCache, ...newUniqueItems];
+              
+              searchCache.set(cleanQuery, searchPincode, isCategory, combinedCache);
 
               trySend(socket, { 
                 action: "streamUpdate", 
                 source: "bigbasket", 
-                products: ranked.slice(0, limit).map(normalizeProduct) 
+                products: newUniqueItems.slice(0, limit).map(normalizeProduct),
+                append: offset > 0
               });
-              trySend(socket, { action: "searchResults", total: ranked.length });
+              trySend(socket, { action: "searchResults", total: newUniqueItems.length });
             }, (error) => {
               console.error("Scraper Error:", error);
               trySend(socket, { action: "error", message: "Live search failed" });

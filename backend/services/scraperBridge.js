@@ -25,26 +25,33 @@ const _inProgress = new Map();
 /**
  * Spawns (or joins an in-flight) scraper process.
  */
-function spawnScraper(keyword, pincode, onComplete, onError) {
-  const key = `${keyword.toLowerCase()}::${pincode}`;
+function spawnScraper(keyword, pincode, start_page = 1, onComplete, onError) {
+  // If start_page is a function, it means it wasn't provided (legacy call)
+  if (typeof start_page === 'function') {
+    onError = onComplete;
+    onComplete = start_page;
+    start_page = 1;
+  }
+
+  const key = `${keyword.toLowerCase()}::${pincode}::${start_page}`;
 
   // ── Deduplication: queue up if already scanning ───────────────────────────
   if (_inProgress.has(key)) {
-    console.log(`[ScraperBridge] Already scanning "${keyword}" @ ${pincode} — queueing callback`);
+    console.log(`[ScraperBridge] Already scanning "${keyword}" @ ${pincode} (page ${start_page}) — queueing callback`);
     _inProgress.get(key).push({ onComplete, onError });
     return;
   }
 
   // Register this request as in-flight with an initial callback
   _inProgress.set(key, [{ onComplete, onError }]);
-  console.log(`[ScraperBridge] 🚀 Spawning Optimized Python Scraper: "${keyword}" @ ${pincode}`);
+  console.log(`[ScraperBridge] 🚀 Spawning Optimized Python Scraper: "${keyword}" @ ${pincode} (page ${start_page})`);
 
   const scraperPath = path.join(__dirname, '..', 'scraper.py');
   
   // Use 'python' or 'python3' depending on the environment
   const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
   
-  const pythonProcess = spawn(pythonCmd, [scraperPath, keyword, pincode]);
+  const pythonProcess = spawn(pythonCmd, [scraperPath, keyword, pincode, String(start_page)]);
 
   let stdoutData = '';
   let stderrData = '';
